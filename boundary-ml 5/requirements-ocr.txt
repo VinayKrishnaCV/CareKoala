@@ -1,0 +1,4 @@
+-r requirements.txt
+easyocr==1.7.2
+opencv-python-headless==4.11.0.86
+Pillow==11.2.1

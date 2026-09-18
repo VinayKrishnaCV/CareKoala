@@ -1,0 +1,10 @@
+{
+  "conversation_id": "demo-conversation",
+  "messages": [
+    {"id": "M1", "speaker": "other", "text": "Send me the OTP."},
+    {"id": "M2", "speaker": "user", "text": "No, I won't share it."},
+    {"id": "M3", "speaker": "other", "text": "Send it or arrange your own ride to the clinic."}
+  ],
+  "boundaries": ["Never share verification codes"]
+}
+

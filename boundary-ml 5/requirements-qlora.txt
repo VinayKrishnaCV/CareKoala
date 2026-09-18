@@ -1,0 +1,3 @@
+-r requirements.txt
+bitsandbytes==0.45.5
+

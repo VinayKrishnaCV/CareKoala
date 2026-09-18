@@ -1,0 +1,22 @@
+{
+  "status": "concern_detected",
+  "concerns": [
+    {
+      "type": "credential_request",
+      "evidence_ids": ["M1", "M3"],
+      "explanation": "The other person asks for an authentication code."
+    },
+    {
+      "type": "pressure_after_refusal",
+      "evidence_ids": ["M1", "M2", "M3"],
+      "explanation": "The request continues after the user refuses."
+    },
+    {
+      "type": "assistance_related_coercion",
+      "evidence_ids": ["M2", "M3"],
+      "explanation": "Transport to a clinic is threatened to force compliance."
+    }
+  ],
+  "clarifying_question": null
+}
+

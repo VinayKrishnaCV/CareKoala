@@ -1,0 +1,20 @@
+{
+  "seed": 20260918,
+  "variants_per_family": 32,
+  "generation": "synthetic_template_variants",
+  "labels": "provisional_human_review_required",
+  "family_split_before_variation": true,
+  "counts": {
+    "train": 576,
+    "validation": 160,
+    "test": 160,
+    "challenge": 6,
+    "multilingual_exploratory": 6
+  },
+  "status_counts": {
+    "insufficient_context": 129,
+    "no_clear_concern": 324,
+    "concern_detected": 455
+  },
+  "private_chat_data": false
+}

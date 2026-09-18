@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'">
+  <title>Boundary</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">LOCAL SAFETY ASSISTANT</p>
+      <h1>Boundary</h1>
+      <p class="subtitle">Review what was read, then ask for a grounded explanation.</p>
+    </div>
+    <div id="backend-status" class="status neutral">Starting local backend…</div>
+  </header>
+
+  <main>
+    <section class="panel capture-panel">
+      <div class="section-heading">
+        <div><span class="step">1</span><h2>Choose what to read</h2></div>
+        <button id="demo-button" class="ghost">Use demo conversation</button>
+      </div>
+      <div class="capture-controls">
+        <select id="source-select" aria-label="Screen or window"><option>Loading screens…</option></select>
+        <button id="refresh-sources" class="secondary">Refresh</button>
+        <button id="capture-button">Capture selected screen</button>
+        <button id="upload-button" class="secondary">Choose screenshot</button>
+      </div>
+      <p class="hint">OCR runs locally. Boundary releases the language model first so both heavy stages do not use memory together.</p>
+      <img id="preview" alt="Selected screenshot preview" hidden>
+      <button id="ocr-button" disabled>Read screenshot locally</button>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><span class="step">2</span><h2>Check the messages</h2></div>
+        <span id="ocr-status" class="quiet">No screenshot read yet</span>
+      </div>
+      <p class="hint">Correct OCR mistakes and speaker labels before analysis. Right-aligned text is guessed as “You”, but you remain in control.</p>
+      <div id="messages" class="messages empty">Captured messages will appear here.</div>
+      <label for="boundaries">Your boundaries, one per line</label>
+      <textarea id="boundaries" rows="3">Never share passwords or verification codes
+Notice continued pressure after I say no
+Notice threats involving transport, care, or assistance</textarea>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><span class="step">3</span><h2>Interpret the conversation</h2></div>
+        <button id="analyze-button" disabled>Analyze reviewed messages</button>
+      </div>
+      <div id="analysis" class="analysis empty">No analysis yet.</div>
+    </section>
+  </main>
+
+  <div id="busy" class="busy" hidden><div class="spinner"></div><p id="busy-text">Working locally…</p></div>
+  <script src="renderer.js"></script>
+</body>
+</html>
+

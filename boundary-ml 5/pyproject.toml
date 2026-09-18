@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boundary-ml"
+version = "0.1.0"
+description = "Conversation safety interpretation for the Boundary hackathon project"
+requires-python = ">=3.10,<3.13"
+
+[tool.setuptools.packages.find]
+include = ["boundary_ml*"]
+
