@@ -1,0 +1,26 @@
+
+# Local dependencies, protected state, model weights and build output
+**/.venv/
+**/node_modules/
+**/__pycache__/
+**/.gradle/
+**/build/
+**/local.properties
+*.safetensors
+*.gguf
+*.bin
+*.jks
+*.log
+**/models/
+carekoala-settings.json
+**/runtime/
+*.pyc
+*.apk
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+**/*.egg-info/
+**/.claude/
+**/data/raw/

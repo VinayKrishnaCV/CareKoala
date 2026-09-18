@@ -1,12 +1,12 @@
 {
-  "name": "boundary-desktop",
+  "name": "carekoala-desktop",
   "version": "0.1.0",
   "private": true,
-  "description": "Local OCR desktop client for Boundary",
+  "description": "Local OCR guardian client for CareKoala",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "start:mock": "BOUNDARY_MOCK=1 electron .",
+    "start:mock": "electron . --mock",
     "test": "node --test test/*.test.js"
   },
   "devDependencies": {

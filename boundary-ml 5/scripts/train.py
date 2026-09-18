@@ -6,7 +6,7 @@ from boundary_ml.training import train
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="Qwen/Qwen3-0.6B")
+    parser.add_argument("--model", required=True, help="Legacy boundary training only; use NewModel/CareKoala/training for the deployed danger scorer")
     parser.add_argument("--train-file", required=True)
     parser.add_argument("--val-file", required=True)
     parser.add_argument("--output-dir", required=True)

@@ -17,9 +17,9 @@ test("renderer uses a restrictive content security policy", () => {
   assert.doesNotMatch(html, /unsafe-eval|https?:\/\//);
 });
 
-test("preload exposes only the Boundary operations", () => {
+test("preload exposes only the CareKoala operations", () => {
   const preload = fs.readFileSync(path.join(root, "preload.js"), "utf8");
-  for (const operation of ["health", "listSources", "chooseImage", "ocrImage", "analyze"]) {
+  for (const operation of ["health", "listSources", "chooseImage", "ocrImage", "analyze", "sendGuardianAlert"]) {
     assert.match(preload, new RegExp(`${operation}:`));
   }
   assert.doesNotMatch(preload, /exposeInMainWorld\([^,]+,\s*ipcRenderer/);

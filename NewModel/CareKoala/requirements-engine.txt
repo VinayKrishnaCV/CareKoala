@@ -1,0 +1,8 @@
+# Runtime for the screen monitor (what ships next to the Electron app).
+# Install the CPU build of PyTorch first - the default PyPI build pulls ~3 GB of CUDA libs:
+#   pip install torch==2.14.0 torchvision==0.29.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements-engine.txt
+easyocr==1.7.2
+mss==10.2.0
+numpy>=2.0
+pillow>=11

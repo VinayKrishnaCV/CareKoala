@@ -2,3 +2,5 @@
 easyocr==1.7.2
 opencv-python-headless==4.11.0.86
 Pillow==11.2.1
+opendht==4.0.0
+cryptography>=44,<47

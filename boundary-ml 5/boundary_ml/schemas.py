@@ -7,6 +7,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 
 class ConcernType(str, Enum):
+    safe = "safe"
+    distress = "distress"
+    self_harm = "self_harm"
+    harassment = "harassment"
+    hate_speech = "hate_speech"
+    violence = "violence"
     credential_request = "credential_request"
     pressure_after_refusal = "pressure_after_refusal"
     assistance_related_coercion = "assistance_related_coercion"
@@ -61,9 +67,21 @@ class Analysis(BaseModel):
     ]
     concerns: list[Concern] = Field(default_factory=list, max_length=3)
     clarifying_question: str | None = Field(default=None, max_length=300)
+    score: int | None = Field(default=None, ge=0, le=10, strict=True)
+    category: Literal['safe','distress','self_harm','harassment','hate_speech','violence'] | None = None
+    level: Literal['none','watch','alert','emergency'] | None = None
+    contact_guardian: bool | None = None
+    windows: int | None = Field(default=None,ge=1)
+    model: str | None = None
 
     @model_validator(mode="after")
     def validate_semantics(self) -> "Analysis":
+        if self.score is not None:
+            expected='emergency' if self.score>=9 else 'alert' if self.score>=7 else 'watch' if self.score>=4 else 'none'
+            if self.category is None or self.level!=expected or self.contact_guardian is not (self.score>=7):
+                raise ValueError('Score policy mismatch')
+            if self.status!=('concern_detected' if self.score>=7 else 'no_clear_concern'):
+                raise ValueError('Score status mismatch')
         if self.status == "concern_detected" and not self.concerns:
             raise ValueError("concern_detected requires at least one concern")
         if self.status != "concern_detected" and self.concerns:
@@ -76,6 +94,23 @@ class Analysis(BaseModel):
         if len(types) != len(set(types)):
             raise ValueError("concern types must not repeat")
         return self
+
+
+class GuardianAlertRequest(BaseModel):
+    """A user-approved help request that intentionally excludes raw messages."""
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    analysis: Analysis
+
+
+class GuardianAlert(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    version: Literal[1] = 1
+    kind: Literal["carekoala_help_request"] = "carekoala_help_request"
+    request_help: Literal[True] = True
+    summary: str = Field(min_length=1, max_length=1_000)
 
 
 class UnavailableResponse(BaseModel):

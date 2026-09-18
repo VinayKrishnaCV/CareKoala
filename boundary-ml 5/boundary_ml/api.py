@@ -2,24 +2,27 @@ from __future__ import annotations
 
 import logging
 import os
-import gc
+import subprocess
+import sys
+from pathlib import Path
 import threading
-from functools import lru_cache
+import signal
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from .schemas import Analysis, AnalyzeRequest, Concern
+from .guardian import GuardianTransport, create_alert
+from .schemas import Analysis, AnalyzeRequest, Concern, GuardianAlertRequest
 
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
-logger = logging.getLogger("boundary.api")
+logger = logging.getLogger("carekoala.api")
 analysis_lock = threading.Lock()
 
-app = FastAPI(title="Boundary Analysis API", version="0.1.0")
+app = FastAPI(title="CareKoala Analysis API", version="0.1.0")
 origins = [
     value.strip()
-    for value in os.getenv("BOUNDARY_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+    for value in os.getenv("CAREKOALA_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
     if value.strip()
 ]
 app.add_middleware(
@@ -29,17 +32,6 @@ app.add_middleware(
     allow_methods=["POST", "GET"],
     allow_headers=["Content-Type"],
 )
-
-
-@lru_cache(maxsize=1)
-def get_model():
-    from .modeling import BoundaryModel
-
-    return BoundaryModel(
-        os.getenv("BOUNDARY_MODEL", "Qwen/Qwen3-0.6B"),
-        adapter=os.getenv("BOUNDARY_ADAPTER") or None,
-        load_in_4bit=os.getenv("BOUNDARY_LOAD_IN_4BIT", "0") == "1",
-    )
 
 
 def mock_analysis(request: AnalyzeRequest) -> Analysis:
@@ -65,8 +57,9 @@ def mock_analysis(request: AnalyzeRequest) -> Analysis:
 def health() -> dict[str, str | bool]:
     return {
         "status": "ok",
-        "mode": "mock" if os.getenv("BOUNDARY_MOCK") == "1" else "model",
-        "model_loaded": get_model.cache_info().currsize > 0,
+        "mode": "mock" if os.getenv("CAREKOALA_MOCK") == "1" else "model",
+        "model_loaded": analysis_lock.locked(),
+        "model": "CareKoala Llama-3.2-1B Q4_K_M + LoRA v2",
     }
 
 
@@ -74,18 +67,31 @@ def health() -> dict[str, str | bool]:
 def release_model() -> dict[str, str]:
     """Release model memory before local OCR performs its own heavy work."""
     with analysis_lock:
-        get_model.cache_clear()
-        gc.collect()
-        try:
-            import torch
-
-            if torch.cuda.is_available():
-                torch.cuda.empty_cache()
-            if torch.backends.mps.is_available():
-                torch.mps.empty_cache()
-        except ImportError:
-            pass
+        pass  # The inference child has exited before the lock is released.
     return {"status": "released"}
+
+
+@app.get("/guardian/status")
+def guardian_status() -> dict[str, bool]:
+    try:
+        return {"paired": GuardianTransport.from_environment() is not None}
+    except ValueError:
+        return {"paired": False}
+
+
+@app.post("/guardian/alert")
+def guardian_alert(request: GuardianAlertRequest) -> dict[str, str]:
+    if request.analysis.status != "concern_detected":
+        raise HTTPException(status_code=422, detail="A concern is required before requesting help")
+    try:
+        transport = GuardianTransport.from_environment()
+        if transport is None:
+            raise RuntimeError("No guardian has been paired")
+        alert = create_alert(request.analysis)
+        transport.publish(alert)
+        return {"status": "sent"}
+    except (RuntimeError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post(
@@ -94,19 +100,56 @@ def release_model() -> dict[str, str]:
     responses={503: {"description": "Model generation or validation failed"}},
 )
 def analyze(request: AnalyzeRequest) -> Analysis:
+    return analyze_request(request, allow_mock=True)
+
+
+@app.post("/analyze/real", response_model=Analysis)
+def analyze_real(request: AnalyzeRequest) -> Analysis:
+    return analyze_request(request, allow_mock=False)
+
+@app.post('/analyze/mock',response_model=Analysis)
+def analyze_mock(request:AnalyzeRequest)->Analysis:
+    return mock_analysis(request)
+
+
+def run_inference(request):
+    child=subprocess.Popen([sys.executable,'-m','boundary_ml.inference_worker'],
+        stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,
+        encoding='utf-8',cwd=Path(__file__).resolve().parents[1],
+        env={**os.environ,'PYTHONIOENCODING':'utf-8','OMP_NUM_THREADS':'2'},
+        creationflags=subprocess.CREATE_NO_WINDOW if os.name=='nt' else 0,
+        start_new_session=os.name!='nt')
     try:
-        if os.getenv("BOUNDARY_MOCK") == "1":
+        stdout,stderr=child.communicate(request.model_dump_json(),timeout=180)
+        return subprocess.CompletedProcess(child.args,child.returncode,stdout,stderr)
+    except BaseException:
+        # Stop llama-server as well as Python before releasing the OCR/model lock.
+        if os.name=='nt':
+            subprocess.run(['taskkill','/PID',str(child.pid),'/T','/F'],capture_output=True,
+                           creationflags=subprocess.CREATE_NO_WINDOW,timeout=15)
+        else:
+            try:os.killpg(child.pid,signal.SIGKILL)
+            except ProcessLookupError:pass
+        child.communicate(timeout=15)
+        raise
+
+def analyze_request(request: AnalyzeRequest, allow_mock: bool) -> Analysis:
+    try:
+        if allow_mock and os.getenv("CAREKOALA_MOCK") == "1":
             return mock_analysis(request)
         # The lock prevents two model generations from exhausting local memory.
         with analysis_lock:
-            return get_model().analyze(request).analysis
+            result = run_inference(request)
+            if result.returncode:
+                raise RuntimeError("Local model worker failed")
+            return Analysis.model_validate_json(result.stdout)
     except Exception:
         # Do not log request bodies, raw generation, or conversation identifiers.
-        logger.exception("analysis failed")
+        logger.error("Local analysis failed")
         raise HTTPException(
             status_code=503,
             detail={
                 "status": "analysis_unavailable",
-                "message": "Boundary could not produce a validated analysis.",
+                "message": "CareKoala could not produce a validated analysis.",
             },
         )

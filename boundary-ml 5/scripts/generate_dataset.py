@@ -114,7 +114,7 @@ def render_family(family: dict, variant: int) -> dict:
 
 
 def write_jsonl(path: Path, rows: list[dict]) -> None:
-    path.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows))
+    path.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
 
 
 def main() -> None:
@@ -172,7 +172,7 @@ def main() -> None:
         "status_counts": dict(Counter(row["label"]["status"] for row in all_rows)),
         "private_chat_data": False,
     }
-    (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    (output / "metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(metadata, indent=2))
 
 

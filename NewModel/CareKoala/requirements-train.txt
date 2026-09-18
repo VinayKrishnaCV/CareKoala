@@ -1,0 +1,13 @@
+# Training / evaluation (CPU is enough; see README for timings).
+#   pip install torch==2.14.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements-train.txt
+#   pip install ./training/third_party/llama.cpp/gguf-py     # matches the vendored converter
+-r requirements-engine.txt
+transformers==5.17.0
+peft==0.21.0
+accelerate==1.15.0
+tokenizers==0.23.2
+safetensors==0.8.0
+pandas==3.0.6
+pyarrow==25.0.1
+openpyxl==3.1.5

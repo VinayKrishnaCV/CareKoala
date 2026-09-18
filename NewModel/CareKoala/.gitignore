@@ -1,0 +1,27 @@
+# Python / tooling
+.venv/
+__pycache__/
+*.pyc
+.claude/
+
+# Large files that are NOT stored in git (GitHub rejects files > 100 MB).
+# Get them back after cloning with:
+#   python engine/download_assets.py        -> base model, EasyOCR weights, llama.cpp binaries
+#   training/download_base_model.sh         -> base model + tokenizer files (for training)
+#   training/download_data.sh               -> raw training datasets
+models/base/
+data/raw/
+engine/models/
+engine/bin/
+
+# Training by-products (checkpoints are only for resuming; tokenizer.json is a copy of models/base/)
+models/**/checkpoint/
+models/**/tokenizer.json
+models/eval/*_server.log
+
+# Partial downloads
+*.part
+*.pdl
+
+# Editor lock files (LibreOffice etc.)
+.~lock.*#
