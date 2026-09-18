@@ -13,7 +13,7 @@ TYPES = [item.value for item in ConcernType]
 def load_rows(paths: list[str]) -> list[dict]:
     rows = []
     for path in paths:
-        for line in Path(path).read_text().splitlines():
+        for line in Path(path).read_text(encoding="utf-8").splitlines():
             if line:
                 row = json.loads(line)
                 row["source_file"] = str(path)

@@ -4,19 +4,40 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'">
-  <title>Boundary</title>
+  <title>CareKoala</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
     <div>
       <p class="eyebrow">LOCAL SAFETY ASSISTANT</p>
-      <h1>Boundary</h1>
-      <p class="subtitle">Review what was read, then ask for a grounded explanation.</p>
+      <h1>CareKoala</h1>
+      <p class="subtitle">Review screen text, then see the trained model's danger score.</p>
     </div>
     <div id="backend-status" class="status neutral">Starting local backend…</div>
   </header>
 
+  <section class="panel real-panel">
+    <h2>Real mode · automatic guardian check-ins</h2>
+    <p>Runs in the system tray: entire screen → local OCR → local model decision. Each cycle starts when processing finishes. A Yes decision automatically publishes an encrypted check-in request to your verified guardian. Screenshots and conversation text stay on this PC.</p>
+    <p class="hint">Trained CareKoala v2 · Llama-3.2-1B, 4-bit. Danger score: 0–3 low, 4–6 watch, 7–8 alert, 9–10 emergency. Scores of 7+ recommend a guardian check-in. This is not an emergency service.</p>
+    <button id="real-start">Start real mode in tray</button>
+    <button id="real-stop" class="secondary">Pause real mode</button>
+    <label><input id="startup-enabled" type="checkbox"> Start CareKoala at Windows sign-in and begin real mode automatically</label>
+    <p id="real-status" role="status">Real mode stopped</p>
+    <button id="guardian-test-send" class="secondary">Send test warning to Android</button>
+    <p class="hint">Sample: “This is a test warning from your paired CareKoala desktop. Please check in. No real concern was detected.” Uses encrypted delivery through ntfy.sh automatically. Requires verified pairing and Start receiving on Android. No gateway or topic setup. Works in mock mode without OCR or analysis.</p>
+    <p id="guardian-test-status" role="status" aria-live="polite"></p>
+    <details><summary>Guardian pairing</summary>
+      <p>Create a pairing code, transfer it privately to CareKoala Guardian on Android, then compare the fingerprint on both screens. Creating a new code revokes the old pairing on this PC.</p>
+      <button id="pair-create" class="secondary">Create new pairing code</button>
+      <button id="pair-forget" class="secondary">Forget guardian</button>
+      <textarea id="pair-code" readonly rows="3" aria-label="Private pairing code" hidden></textarea>
+      <p id="pair-fingerprint"></p>
+      <button id="pair-verify" class="secondary" disabled>Fingerprints match — verify guardian</button>
+      <p id="pair-status" role="status">No verified guardian</p>
+    </details>
+  </section>
   <main>
     <section class="panel capture-panel">
       <div class="section-heading">
@@ -29,7 +50,15 @@
         <button id="capture-button">Capture selected screen</button>
         <button id="upload-button" class="secondary">Choose screenshot</button>
       </div>
-      <p class="hint">OCR runs locally. Boundary releases the language model first so both heavy stages do not use memory together.</p>
+      <div class="capture-controls">
+        <label for="capture-interval">Pause between cycles</label>
+        <select id="capture-interval"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">60 seconds</option></select>
+        <button id="monitor-start">Start periodic capture</button>
+        <button id="monitor-stop" class="secondary" disabled>Stop</button>
+      </div>
+      <p id="monitor-status" role="status">Periodic capture is off.</p>
+      <p class="hint">Choose only the conversation window. While enabled: fresh screenshot → local OCR → local analysis. Stop prevents the next stage or cycle; a running stage finishes first. Speaker labels are estimates. In manual/demo mode, guardian alerts require your click. Real mode has separate automatic-alert controls above.</p>
+      <p class="hint">OCR runs locally. CareKoala releases the language model first so both heavy stages do not use memory together.</p>
       <img id="preview" alt="Selected screenshot preview" hidden>
       <button id="ocr-button" disabled>Read screenshot locally</button>
     </section>
@@ -39,12 +68,11 @@
         <div><span class="step">2</span><h2>Check the messages</h2></div>
         <span id="ocr-status" class="quiet">No screenshot read yet</span>
       </div>
-      <p class="hint">Correct OCR mistakes and speaker labels before analysis. Right-aligned text is guessed as “You”, but you remain in control.</p>
+      <p class="hint">Correct OCR mistakes before scoring. The trained model scores screen text; speaker estimates do not affect its score.</p>
+      <details id="review-details"><summary>Review or correct recognized text and speakers</summary>
       <div id="messages" class="messages empty">Captured messages will appear here.</div>
-      <label for="boundaries">Your boundaries, one per line</label>
-      <textarea id="boundaries" rows="3">Never share passwords or verification codes
-Notice continued pressure after I say no
-Notice threats involving transport, care, or assistance</textarea>
+      </details>
+      <textarea id="boundaries" hidden aria-label="Legacy mock boundaries"></textarea>
     </section>
 
     <section class="panel">
@@ -57,6 +85,19 @@ Notice threats involving transport, care, or assistance</textarea>
   </main>
 
   <div id="busy" class="busy" hidden><div class="spinner"></div><p id="busy-text">Working locally…</p></div>
+  <div id="guardian-dialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="guardian-title">
+    <section class="guardian-dialog">
+      <p class="eyebrow">SUPPORT RECOMMENDATION</p>
+      <h2 id="guardian-title">Consider talking with your guardian</h2>
+      <p>CareKoala found a concern in the messages you reviewed. You can ask your paired guardian for help.</p>
+      <p class="hint">Only a short CareKoala analysis and a request for help will be sent—never this screenshot or the full conversation.</p>
+      <div class="dialog-actions">
+        <button id="guardian-send">Send help alert</button>
+        <button id="guardian-dismiss" class="secondary">Not now</button>
+      </div>
+      <p id="guardian-status" class="quiet"></p>
+    </section>
+  </div>
   <script src="renderer.js"></script>
 </body>
 </html>

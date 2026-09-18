@@ -26,7 +26,7 @@ from .schemas import AnalyzeRequest
 
 class JsonlDataset(Dataset):
     def __init__(self, path: str, tokenizer, max_length: int):
-        self.rows = [json.loads(line) for line in Path(path).read_text().splitlines() if line]
+        self.rows = [json.loads(line) for line in Path(path).read_text(encoding="utf-8").splitlines() if line]
         self.tokenizer = tokenizer
         self.max_length = max_length
 

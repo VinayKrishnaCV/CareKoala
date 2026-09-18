@@ -8,7 +8,7 @@ from boundary_ml.evaluation import evaluate
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="Qwen/Qwen3-0.6B")
+    parser.add_argument("--model", required=True, help="Legacy boundary evaluation only; use NewModel/CareKoala/training/evaluate.py for the danger scorer")
     parser.add_argument("--adapter")
     parser.add_argument("--inputs", nargs="+", required=True)
     parser.add_argument("--output", required=True)

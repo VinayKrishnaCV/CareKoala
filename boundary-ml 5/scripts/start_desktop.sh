@@ -12,8 +12,8 @@ fi
 cd "$project_root"
 "$python_bin" scripts/doctor.py
 
-export BOUNDARY_PYTHON="$python_bin"
-export BOUNDARY_MODEL="${BOUNDARY_MODEL:-Qwen/Qwen3-0.6B}"
+export CAREKOALA_PYTHON="$python_bin"
+export CAREKOALA_MOCK=0
 cd electron-app
 exec npm start
 

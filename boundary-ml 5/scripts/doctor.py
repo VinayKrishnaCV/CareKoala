@@ -12,6 +12,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from boundary_ml.trained_model import assets
 
 
 def package(name: str) -> dict:
@@ -38,11 +40,16 @@ def main() -> None:
     node = shutil.which("node")
     npm = shutil.which("npm")
     electron_binary = ROOT / "electron-app" / "node_modules" / ".bin" / "electron"
+    dependencies = subprocess.run(
+        [sys.executable, "-m", "pip", "check"],
+        capture_output=True, text=True, timeout=60,
+    )
     report = {
+        "dependencies": {"ok": dependencies.returncode == 0,
+                         "details": (dependencies.stdout or dependencies.stderr).strip()},
         "python": {"version": platform.python_version(), "supported": python_ok},
         "packages": {
             "torch": package("torch"),
-            "transformers": package("transformers"),
             "fastapi": package("fastapi"),
             "uvicorn": package("uvicorn"),
             "easyocr": package("easyocr"),
@@ -52,20 +59,25 @@ def main() -> None:
         "node": command_version([node, "--version"]) if node else None,
         "npm": command_version([npm, "--version"]) if npm else None,
         "electron_installed": electron_binary.exists(),
-        "model_cached": any((Path.home() / ".cache" / "huggingface" / "hub").glob("models--Qwen--Qwen3-0.6B*")),
+        "trained_model": {name:{"path":value,"present":Path(value).is_file()} for name,value in assets().items()},
     }
     print(json.dumps(report, indent=2))
     missing = [name for name, value in report["packages"].items() if not value["present"]]
-    if not python_ok or missing or not report["electron_installed"]:
+    missing_assets=[name for name,value in report['trained_model'].items() if not value['present']]
+    if not python_ok or missing or missing_assets or not report["electron_installed"] or not report["dependencies"]["ok"]:
         print("\nSetup is incomplete.")
+        if not report["dependencies"]["ok"]:
+            print("- Repair dependencies: python -m pip install -r requirements-ocr.txt")
         if not python_ok:
             print("- Create .venv with Python 3.10-3.12.")
         if missing:
             print(f"- Missing Python packages: {', '.join(missing)}")
+        if missing_assets:
+            print(f"- Missing trained model assets: {', '.join(missing_assets)}. See MODEL-INTEGRATION.md.")
         if not report["electron_installed"]:
             print("- Run: cd electron-app && npm install")
         raise SystemExit(1)
-    print("\nBoundary desktop prerequisites are ready.")
+    print("\nCareKoala desktop prerequisites are ready.")
 
 
 if __name__ == "__main__":

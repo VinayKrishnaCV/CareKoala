@@ -1,7 +1,8 @@
 import os
 import unittest
+from unittest.mock import patch
 
-os.environ["BOUNDARY_MOCK"] = "1"
+os.environ["CAREKOALA_MOCK"] = "1"
 
 from fastapi.testclient import TestClient
 
@@ -38,6 +39,37 @@ class ApiTests(unittest.TestCase):
         response = TestClient(app).post("/model/release")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "released"})
+
+    @patch.dict(os.environ, {"CAREKOALA_GUARDIAN_PUBLIC_KEY": "", "CAREKOALA_GUARDIAN_RENDEZVOUS_KEY": ""})
+    @patch("boundary_ml.guardian.GuardianTransport.publish", side_effect=AssertionError("No network allowed"))
+    def test_guardian_alert_requires_pairing(self, publish):
+        response = TestClient(app).post("/guardian/alert", json={
+            "analysis": {
+                "status": "concern_detected",
+                "concerns": [{
+                    "type": "credential_request",
+                    "evidence_ids": ["M1"],
+                    "explanation": "This message asks for an authentication secret.",
+                }],
+                "clarifying_question": None,
+            },
+        })
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["detail"], "No guardian has been paired")
+        publish.assert_not_called()
+
+    @patch.dict(os.environ, {"CAREKOALA_GUARDIAN_PUBLIC_KEY": "test", "CAREKOALA_GUARDIAN_RENDEZVOUS_KEY": ""})
+    @patch("boundary_ml.guardian.GuardianTransport.publish", side_effect=AssertionError("No network allowed"))
+    def test_incomplete_pairing_fails_safely(self, publish):
+        response = TestClient(app).post("/guardian/alert", json={"analysis": {
+            "status": "concern_detected",
+            "concerns": [{"type": "credential_request", "evidence_ids": ["M1"],
+                          "explanation": "This message asks for an authentication secret."}],
+            "clarifying_question": None,
+        }})
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.json()["detail"], "Guardian pairing is incomplete")
+        publish.assert_not_called()
 
 
 if __name__ == "__main__":

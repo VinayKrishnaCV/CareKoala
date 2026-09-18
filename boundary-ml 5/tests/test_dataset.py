@@ -26,7 +26,7 @@ class DatasetTests(unittest.TestCase):
         cls.temp.cleanup()
 
     def rows(self, name):
-        return [json.loads(line) for line in (Path(self.temp.name) / name).read_text().splitlines()]
+        return [json.loads(line) for line in (Path(self.temp.name) / name).read_text(encoding="utf-8").splitlines()]
 
     def test_scenario_families_do_not_cross_splits(self):
         families = {}
