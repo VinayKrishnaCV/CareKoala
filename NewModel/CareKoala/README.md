@@ -18,7 +18,7 @@ This follows the "Minimal & Efficient Stack" spec: EasyOCR for screen text + Lla
 
 ## Danger scale
 
-| score | meaning | default level |
+| score | example | default level |
 |---|---|---|
 | 0 | safe – news, study, code, chat, shopping, UI | none |
 | 1 | everyday negativity, casual swearing | none |
