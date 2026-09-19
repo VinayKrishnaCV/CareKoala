@@ -213,16 +213,27 @@ function refreshTray() {
   tray.setToolTip(`CareKoala: ${auto.status}`.slice(0,120));
   tray.setContextMenu(Menu.buildFromTemplate([
     {label:'Open CareKoala',click:()=>{mainWindow.show();mainWindow.focus();}},
-    {label:auto.running?'Pause real mode':'Start real mode',click:()=>{if(auto.running)auto.stop();else startReal().catch(e=>{auto.update(`Paused: ${e.message}`);});}},
+    {label:auto.running?'Pause real mode':'Start real mode',click:()=>{(auto.running?pauseReal():startReal()).catch(e=>auto.update(`Paused: ${e.message}`));}},
     {label:'Quit CareKoala',click:()=>{quitting=true;auto.stop();app.quit();}}
   ]));
   mainWindow?.webContents.send('carekoala:auto-status',auto.snapshot());
 }
+let startingReal=false,screenLocked=false,suspended=false;
 async function startReal(){
+  if(startingReal || auto.running)return;
+  if(screenLocked || suspended)throw new Error('Waiting for an unlocked, awake desktop.');
   if(!settings.public().paired) throw new Error('Pair and verify a guardian before starting automatic check-in alerts.');
   if(auto.pending)throw new Error('The previous cycle is still finishing. Please wait.');
-  mainWindow?.hide();
-  auto.start();
+  startingReal=true;
+  try{await settings.setResume(true);if(!settings.data.resumeReal || quitting || screenLocked || suspended)return;mainWindow?.hide();auto.start();}
+  finally{startingReal=false;}
+}
+async function pauseReal(){auto.stop();await settings.setResume(false);return auto.snapshot();}
+async function resumeSaved(){
+  if(auto?.running || screenLocked || suspended)return;
+  if(auto?.pending)await auto.pending;
+  if(!quitting && settings.data.resumeReal && settings.public().paired && !auto.running)
+    await startReal().catch(e=>auto.update(`Paused: ${e.message}`));
 }
 function loginArgs(){return app.isPackaged ? ['--auto-real'] : [path.resolve(__dirname),'--auto-real'];}
 async function initializeBackground(){
@@ -243,12 +254,11 @@ async function initializeBackground(){
     changed:state=>{refreshTray();if(state.error){mainWindow?.show();mainWindow?.focus();}}
   });
   tray=new Tray(trayIcon());tray.on('double-click',()=>mainWindow?.show());refreshTray();
-  powerMonitor.on('lock-screen',()=>auto.stop('Paused: Windows screen locked. Unlock and start real mode again.'));
-  powerMonitor.on('suspend',()=>auto.stop('Paused: computer went to sleep. Start real mode again when ready.'));
-  if(process.argv.includes('--auto-real') && settings.data.startAtLogin) {
-    mainWindow?.hide();
-    await startReal().catch(e=>auto.update(`Paused: ${e.message}`));
-  }
+  powerMonitor.on('lock-screen',()=>{screenLocked=true;auto.stop('Paused while Windows is locked; resumes after unlock.');});
+  powerMonitor.on('suspend',()=>{suspended=true;auto.stop('Paused while the computer sleeps; resumes after wake.');});
+  powerMonitor.on('unlock-screen',()=>{screenLocked=false;resumeSaved();});
+  powerMonitor.on('resume',()=>{suspended=false;resumeSaved();});
+  if(!MOCK_MODE)await resumeSaved();
 }
 
 function createWindow() {
@@ -329,7 +339,7 @@ handle('carekoala:create-pairing',async()=>{auto.stop();return settings.createPa
 handle('carekoala:verify-pairing',(_event,fingerprint)=>settings.verify(fingerprint));
 handle('carekoala:forget-pairing',async()=>{auto.stop();return settings.forget();});
 handle('carekoala:auto-start',async()=>{await startReal();return auto.snapshot();});
-handle('carekoala:auto-stop',()=>{auto.stop();return auto.snapshot();});
+handle('carekoala:auto-stop',()=>pauseReal());
 handle('carekoala:startup',async(_event,enabled)=>{
   if(typeof enabled!=='boolean')throw new Error('Invalid startup setting.');
   if(enabled && !settings.public().paired)throw new Error('Pair a guardian before enabling automatic real mode at sign-in.');

@@ -24,3 +24,8 @@ carekoala-settings.json
 **/*.egg-info/
 **/.claude/
 **/data/raw/
+*[Hh][Aa][Nn][Dd][Oo][Ff][Ff]*
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+README-AGENT-RULES.md
