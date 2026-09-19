@@ -22,6 +22,7 @@
     <p>Runs in the system tray: entire screen → local OCR → local model decision. Each cycle starts when processing finishes. A Yes decision automatically publishes an encrypted check-in request to your verified guardian. Screenshots and conversation text stay on this PC.</p>
     <p class="hint">Trained CareKoala v2 · Llama-3.2-1B, 4-bit. Danger score: 0–3 low, 4–6 watch, 7–8 alert, 9–10 emergency. Scores of 7+ recommend a guardian check-in. This is not an emergency service.</p>
     <button id="real-start">Start real mode in tray</button>
+    <p id="real-progress" class="hint" role="status">Real-mode progress will appear here. Reopen CareKoala from the tray to check it.</p>
     <button id="real-stop" class="secondary">Pause real mode</button>
     <label><input id="startup-enabled" type="checkbox"> Start CareKoala at Windows sign-in and begin real mode automatically</label>
     <p id="real-status" role="status">Real mode stopped</p>
