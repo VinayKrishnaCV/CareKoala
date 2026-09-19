@@ -328,6 +328,8 @@ function renderRealStatus(value){
   if(!value)return;
   $("real-status").textContent=value.status+(Number.isInteger(value.score)?` · Score: ${value.score}/10 (${value.level}, ${value.category.replaceAll('_',' ')})`:'')+(value.decision===true?' · Check-in: Yes':value.decision===false?' · Check-in: No':'');
   $("real-start").disabled=value.running;
+  const details=$('real-progress');
+  if(details)details.textContent=`Completed cycles: ${value.cycles||0} · OCR items: ${value.recognizedItems??'waiting'} · Last model check: ${value.lastCheck?new Date(value.lastCheck).toLocaleTimeString():'not yet'} · Last alert published: ${value.lastPublication?new Date(value.lastPublication).toLocaleTimeString():'none'}. Publication does not confirm phone receipt.`;
 }
 async function refreshSettings(){
   const value=await window.carekoala.settings();

@@ -220,13 +220,18 @@ function refreshTray() {
 }
 async function startReal(){
   if(!settings.public().paired) throw new Error('Pair and verify a guardian before starting automatic check-in alerts.');
-  auto.start();mainWindow?.hide();
+  if(auto.pending)throw new Error('The previous cycle is still finishing. Please wait.');
+  mainWindow?.hide();
+  auto.start();
 }
 function loginArgs(){return app.isPackaged ? ['--auto-real'] : [path.resolve(__dirname),'--auto-real'];}
 async function initializeBackground(){
   await settings.load();
   auto=new AutoMode({
     capture:async()=>{
+      // First capture waits for Windows to finish hiding the app; later cycles
+      // remain completion-driven, without a periodic capture timer.
+      if(!auto.cycles)await new Promise(resolve=>setTimeout(resolve,250));
       const sources=await desktopCapturer.getSources({types:['screen'],thumbnailSize:{width:1920,height:1080}});
       if(!sources.length || sources.some(s=>s.thumbnail.isEmpty()))throw new Error('Entire-screen capture unavailable.');
       return sources.map(s=>s.thumbnail.toDataURL());
@@ -235,11 +240,11 @@ async function initializeBackground(){
     hash:t=>crypto.createHash('sha256').update(t).digest('hex'),
     decide:async messages=>{const r=await analyze({conversation_id:'auto-local',messages,boundaries:[]},true);auto.score=r.score;auto.level=r.level;auto.category=r.category;return Number.isInteger(r.score)?r.score>=7:null;},
     alert:async()=>{await sendGuardianAlert();return 'Encrypted check-in request published; guardian receipt unconfirmed';},
-    changed:refreshTray
+    changed:state=>{refreshTray();if(state.error){mainWindow?.show();mainWindow?.focus();}}
   });
   tray=new Tray(trayIcon());tray.on('double-click',()=>mainWindow?.show());refreshTray();
-  powerMonitor.on('lock-screen',()=>auto.stop());
-  powerMonitor.on('suspend',()=>auto.stop());
+  powerMonitor.on('lock-screen',()=>auto.stop('Paused: Windows screen locked. Unlock and start real mode again.'));
+  powerMonitor.on('suspend',()=>auto.stop('Paused: computer went to sleep. Start real mode again when ready.'));
   if(process.argv.includes('--auto-real') && settings.data.startAtLogin) {
     mainWindow?.hide();
     await startReal().catch(e=>auto.update(`Paused: ${e.message}`));
