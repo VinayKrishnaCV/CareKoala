@@ -1,8 +1,16 @@
 # CareKoala
 
-CareKoala checks screen text on a Windows PC and sends encrypted check-in requests to a guardian's Android phone. EasyOCR and the classification model run on the PC. Android receives alerts and holds the guardian's private key.
+CareKoala is a Windows screen-safety application with an Android Guardian companion. Its Electron desktop app captures the entire screen, extracts text locally with EasyOCR, and classifies it using Llama-3.2-1B-Instruct Q4_K_M with the trained CareKoala v2 LoRA adapter through llama.cpp. OCR and inference run sequentially on the CPU to reduce simultaneous memory use.
 
-Current application version: **0.4.2**. The Windows and Android source are both public in this repository. Model weights, signing keys, personal settings and compiled applications are excluded.
+Features include:
+- Automatic monitoring: completion-driven background capture, unchanged-text detection, duplicate-alert suppression, system-tray controls, and optional Windows startup.
+- Manual review: screen/window capture, image import, editable OCR text, analysis, periodic capture, and an explicit mock mode.
+- Risk-based actions: scores 0–5 continue monitoring, 6–7 notify the guardian, and 8–10 activate a multi-display lockdown overlay. Custom trigger words can independently request check-ins.
+- Encrypted guardian communication: ntfy.sh relays AES-256-GCM envelopes over HTTPS using HMAC-derived topics. QR or single-code pairing includes PC approval. RSA-protected one-time unlock keys remain under guardian control, with private keys held in Android Keystore.
+- Guardian controls: phone authentication, remote or typed-key unlocking, encrypted completion confirmations, replay protection, retries, and saved connections. Android supports ten independently managed people, notification routing, receiving preferences, and restart recovery.
+- Local protection: an optional hosts-based domain blocker uses the StevenBlack list, preserves custom entries, updates daily, and supports removal.
+- Accessible interfaces: persistent light/dark themes, Material 3 Android styling, retained pairing drafts, and notification/lockdown test buttons.
+Supporting projects include PyTorch, FastAPI, Uvicorn, OpenCV, Pillow, ZXing, and qrcode. Screen content stays on the PC; remote delivery requires connectivity. Scores are not clinical diagnoses.
 
 ## Download 0.4.2
 
