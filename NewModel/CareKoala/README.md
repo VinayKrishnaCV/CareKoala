@@ -3,7 +3,7 @@
 CareKoala watches what is on the screen, reads it with **EasyOCR**, and a fine-tuned
 **Llama-3.2-1B-Instruct (4-bit)** gives it a **danger score from 0 to 10**. The Electron app
 turns those scores into guardian alerts and the crisis protocol. Everything runs locally –
-no screenshot or screen text ever leaves the laptop.
+no screenshot or screen text ever leaves the PC.
 
 ```
 screen ──mss──▶ EasyOCR ──text──▶ Llama-3.2-1B Q4_K_M + CareKoala LoRA ──▶ {"score": 8, "category": "self_harm"}
@@ -14,7 +14,7 @@ screen ──mss──▶ EasyOCR ──text──▶ Llama-3.2-1B Q4_K_M + Care
 ```
 
 This follows the "Minimal & Efficient Stack" spec: EasyOCR for screen text + Llama-3.2-1B-Instruct
-4-bit for trigger analysis, sized for an 8 GB RAM laptop.
+4-bit for trigger analysis, sized for an 8 GB RAM PC.
 
 ## Danger scale
 
@@ -103,7 +103,7 @@ Resources measured on a 1920×1200 screen (Core Ultra 7 255H, 4 threads each):
 | Python + EasyOCR (`--ocr-canvas 1280`) | ~1.3 GB peak | ~7 s |
 
 That is ~2 GB in total, more than the spec's "~1.2 GB" estimate: EasyOCR runs on PyTorch and
-needs ~1.2 GB by itself. It still leaves ~6 GB on an 8 GB laptop. Unchanged screens are
+needs ~1.2 GB by itself. It still leaves ~6 GB on an 8 GB PC. Unchanged screens are
 skipped, so an idle screen costs almost nothing.
 
 ## What is in this folder
