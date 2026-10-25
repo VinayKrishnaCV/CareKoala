@@ -4,6 +4,12 @@ CareKoala checks screen text on a Windows PC and sends encrypted check-in reques
 
 Current application version: **0.4.2**. The Windows and Android source are both public in this repository. Model weights, signing keys, personal settings and compiled applications are excluded.
 
+## Download 0.4.2
+
+- [Windows x64 installer](https://github.com/VinayKrishnaCV/CareKoala/releases/download/v0.4.2/CareKoala-Setup-0.4.2-x64.exe)
+- [Android Guardian APK](https://github.com/VinayKrishnaCV/CareKoala/releases/download/v0.4.2/CareKoala-Guardian-0.4.2.apk)
+- [Release notes and SHA-256 checksums](https://github.com/VinayKrishnaCV/CareKoala/releases/tag/v0.4.2)
+
 ## Monitoring
 
 Real mode captures the entire screen and processes one stage at a time: capture, OCR, OCR exit, local inference, model release, then policy. The next cycle starts when processing finishes. Unchanged text skips repeated inference, and a continuing concern does not repeatedly notify the guardian.

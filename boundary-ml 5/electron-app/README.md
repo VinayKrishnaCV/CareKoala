@@ -2,6 +2,10 @@
 
 Version **0.4.2**. This directory contains the Windows interface, preload APIs, system tray, capture controls, encrypted enrollment, unlock overlay and domain-protection helper. Python workers and the local API live one directory above it.
 
+## Download 0.4.2
+
+[Download the Windows x64 installer](https://github.com/VinayKrishnaCV/CareKoala/releases/download/v0.4.2/CareKoala-Setup-0.4.2-x64.exe). It includes the local Python, OCR and model runtime. The Windows installer is not code-signed. [Release notes and checksums](https://github.com/VinayKrishnaCV/CareKoala/releases/tag/v0.4.2) accompany the packages.
+
 ## Run from source
 
 Complete the [PC setup](../README.md), including Python dependencies, model assets and llama.cpp. From `boundary-ml 5`, run:

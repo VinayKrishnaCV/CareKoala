@@ -4,6 +4,10 @@ Guardian receives encrypted alerts, stores guardian keys in Android Keystore and
 
 Version **0.4.2**, version code **12**. The app supports Android 8.0 and newer, with compile/target SDK 35. Java source, resources and tests are public here. APKs, signing keys and personal device state are excluded.
 
+## Download 0.4.2
+
+[Download the signed Android APK](https://github.com/VinayKrishnaCV/CareKoala/releases/download/v0.4.2/CareKoala-Guardian-0.4.2.apk). Verify it against [SHA256SUMS.txt](https://github.com/VinayKrishnaCV/CareKoala/releases/download/v0.4.2/SHA256SUMS.txt). Updates require the same CareKoala signing identity as the installed app.
+
 ## Add a person
 
 1. On the PC, open **Guardian**, name the person or PC and create a pairing QR/code.
