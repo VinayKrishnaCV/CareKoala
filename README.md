@@ -10,6 +10,7 @@ Features include:
 - Guardian controls: phone authentication, remote or typed-key unlocking, encrypted completion confirmations, replay protection, retries, and saved connections. Android supports ten independently managed people, notification routing, receiving preferences, and restart recovery.
 - Local protection: an optional hosts-based domain blocker uses the StevenBlack list, preserves custom entries, updates daily, and supports removal.
 - Accessible interfaces: persistent light/dark themes, Material 3 Android styling, retained pairing drafts, and notification/lockdown test buttons.
+
 Supporting projects include PyTorch, FastAPI, Uvicorn, OpenCV, Pillow, ZXing, and qrcode. Screen content stays on the PC; remote delivery requires connectivity. Scores are not clinical diagnoses.
 
 ## Download 0.4.2
