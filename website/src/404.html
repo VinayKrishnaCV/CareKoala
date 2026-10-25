@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <title>Page not found · CareKoala</title>
+    <meta name="robots" content="noindex" />
+    <link
+      rel="icon"
+      href="{{site.url}}assets/img/koala.svg"
+      type="image/svg+xml"
+    />
+    <script src="{{site.url}}assets/theme.js"></script>
+    <link rel="stylesheet" href="{{site.url}}assets/site.css" />
+  </head>
+  <body>
+    <main class="wrap hero">
+      <a class="brand" href="{{site.home}}"
+        ><img
+          src="{{site.url}}assets/img/koala.svg"
+          alt=""
+          width="40"
+          height="40"
+        /><span>CareKoala</span></a
+      >
+      <h1 class="missing">This page isn’t here.</h1>
+      <p class="lede">
+        The address may have changed with a new release. The downloads for
+        version {{desktop.version}} are on the main page.
+      </p>
+      <a class="button primary" href="{{site.home}}">Go to the downloads</a>
+    </main>
+  </body>
+</html>

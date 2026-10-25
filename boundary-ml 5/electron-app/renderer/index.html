@@ -1,105 +1,441 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'">
-  <title>CareKoala</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header>
-    <div>
-      <p class="eyebrow">LOCAL SAFETY ASSISTANT</p>
-      <h1>CareKoala</h1>
-      <p class="subtitle">Review screen text, then see the trained model's danger score.</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'"
+    />
+    <title>CareKoala</title>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside class="rail">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">C</span
+        ><span>CareKoala</span>
+      </div>
+      <nav aria-label="Main navigation">
+        <button class="nav-item selected" data-page="home" aria-selected="true">
+          <span aria-hidden="true">◉</span> Overview</button
+        ><button class="nav-item" data-page="guardian" aria-selected="false">
+          <span aria-hidden="true">♡</span> Guardian</button
+        ><button class="nav-item" data-page="protection" aria-selected="false">
+          <span aria-hidden="true">◇</span> Protection</button
+        ><button class="nav-item" data-page="review" aria-selected="false">
+          <span aria-hidden="true">▤</span> Check screen text
+        </button>
+      </nav>
+    </aside>
+    <div class="app">
+      <header class="app-bar">
+        <span id="page-label">Overview</span
+        ><button
+          id="theme-toggle"
+          class="icon-button"
+          type="button"
+          aria-label="Use dark theme"
+          aria-pressed="false"
+        >
+          <svg
+            class="moon"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            aria-hidden="true"
+          >
+            <path
+              d="M20.2 15.4A8.7 8.7 0 0 1 8.6 3.8a8.8 8.8 0 1 0 11.6 11.6Z"
+            /></svg
+          ><svg
+            class="sun"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"
+            />
+          </svg>
+        </button>
+      </header>
+      <p id="operation-status" class="operation-error" role="alert" hidden></p>
+      <main>
+        <section id="page-home" class="page" aria-label="Overview">
+          <section class="panel monitoring-controls">
+            <div class="monitoring-actions">
+              <div class="actions">
+                <button id="real-start">Start real mode</button
+                ><button id="real-stop" class="secondary">
+                  Pause monitoring
+                </button>
+              </div>
+              <p id="real-status" class="supporting" role="status">
+                Real mode stopped
+              </p>
+            </div>
+          </section>
+          <div class="settings-rows">
+            <section class="panel">
+              <h2>Your guardian</h2>
+              <p id="guardian-summary">Connect a guardian to get started.</p>
+              <button class="secondary" data-go="guardian">
+                Manage connection
+              </button>
+            </section>
+            <section class="panel">
+              <p>Trigger words, domain blocking and startup settings.</p>
+              <button class="secondary" data-go="protection">
+                Protection settings
+              </button>
+            </section>
+          </div>
+          <section class="panel">
+            <h2>Score policy</h2>
+            <div class="policy-grid">
+              <div>
+                <span class="score-chip">0–5</span>
+                <p>No automatic check-in.</p>
+              </div>
+              <div>
+                <span class="score-chip tonal">6–7</span>
+                <p>Your guardian gets an encrypted notification.</p>
+              </div>
+              <div>
+                <span class="score-chip alert">8–10</span>
+                <p>
+                  A guardian unlock screen pauses the PC until you check in.
+                </p>
+              </div>
+            </div>
+            <p class="hint">
+              Scores describe screen content. CareKoala is not an emergency
+              service. Personal trigger words can also request a check-in.
+            </p>
+          </section>
+          <details class="panel">
+            <summary>Monitoring details</summary>
+            <p id="real-progress" class="hint" role="status">
+              Progress appears after monitoring starts.
+            </p>
+            <p class="hint">
+              Entire screen → local OCR → local model. Each cycle starts after
+              the last finishes. OCR and the model run one after another to keep
+              memory use down.
+            </p>
+          </details>
+        </section>
+        <section id="page-guardian" class="page" aria-label="Guardian" hidden>
+          <section class="panel connection-summary">
+            <div>
+              <h2 id="guardian-name">Your guardian</h2>
+              <p id="pair-status" role="status">Checking saved connection…</p>
+            </div>
+            <span class="status neutral" id="pair-badge">Checking</span>
+          </section>
+          <section class="panel">
+            <h2>Connect a guardian</h2>
+            <p>
+              The phone can scan this PC or use the same single code remotely.
+              Current pairing stays in place until you approve the new
+              connection.
+            </p>
+            <label for="pair-user-name">Name of this person or PC</label
+            ><input
+              id="pair-user-name"
+              maxlength="60"
+              placeholder="For example, Alex’s PC"
+              autocomplete="off"
+            />
+            <div class="actions">
+              <button id="pairing-start">Create pairing QR &amp; code</button
+              ><button id="pairing-cancel" class="text-button" hidden>
+                Cancel invitation
+              </button>
+            </div>
+            <div id="pairing-invite" class="pairing-layout" hidden>
+              <div class="qr-frame">
+                <img
+                  id="pairing-qr"
+                  alt="Private CareKoala pairing QR code"
+                  width="280"
+                  height="280"
+                />
+              </div>
+              <div>
+                <h3>1. Scan or enter this code</h3>
+                <p>
+                  On Guardian, open <strong>Add person</strong>. Scan the QR, or
+                  enter the code below.
+                </p>
+                <label for="pairing-code">Single private pairing code</label
+                ><input
+                  id="pairing-code"
+                  readonly
+                  class="pairing-code"
+                  aria-label="Single private pairing code"
+                /><button id="pairing-copy" class="secondary">Copy code</button>
+                <p class="hint" id="pairing-expiry"></p>
+                <p class="hint">
+                  Share privately with your guardian. No public key or
+                  fingerprint copying is needed.
+                </p>
+              </div>
+            </div>
+            <div id="pairing-confirm" class="confirmation" hidden>
+              <h3 id="pairing-candidate">Guardian ready</h3>
+              <p>
+                Check that this is the person you intended to connect. Approving
+                configures notifications and guardian unlock together.
+              </p>
+              <button id="pairing-approve">Approve guardian</button>
+            </div>
+            <p id="pairing-message" role="status" aria-live="polite"></p>
+          </section>
+          <section class="panel">
+            <h2>Connection tests</h2>
+            <p>Send a test notification or open a test lockdown.</p>
+            <div class="actions">
+              <button id="guardian-test-send" class="secondary">
+                Send test notification</button
+              ><button id="lockdown-demo" class="secondary">
+                Test lockdown
+              </button>
+            </div>
+            <p id="guardian-test-status" role="status" aria-live="polite"></p>
+            <p class="hint">
+              The overlay covers the PC screens. Your guardian can send the
+              one-time key after phone verification, or read it to you. Windows
+              security controls remain available.
+            </p>
+          </section>
+          <details class="panel">
+            <summary>Connection details &amp; older app setup</summary>
+            <p id="pair-fingerprint"></p>
+            <p id="rsa-status"></p>
+            <p class="hint">
+              The single-code flow above is recommended. These controls are for
+              compatibility with an older Guardian app.
+            </p>
+            <button id="pair-create" class="secondary">
+              Create legacy pairing code</button
+            ><button id="pair-verify" class="secondary" disabled>
+              Fingerprints match — verify guardian</button
+            ><textarea
+              id="pair-code"
+              readonly
+              rows="3"
+              aria-label="Legacy private pairing code"
+              hidden
+            ></textarea
+            ><label for="rsa-code">Legacy guardian public key</label
+            ><textarea
+              id="rsa-code"
+              rows="3"
+              placeholder="CKR1 public key"
+            ></textarea
+            ><label for="rsa-fingerprint">Legacy public-key fingerprint</label
+            ><input
+              id="rsa-fingerprint"
+              placeholder="Complete fingerprint from Android"
+            /><button id="rsa-import" class="secondary">
+              Save verified legacy public key
+            </button>
+            <hr />
+            <button id="pair-forget" class="danger-button">
+              Disconnect guardian
+            </button>
+          </details>
+        </section>
+        <section
+          id="page-protection"
+          class="page"
+          aria-label="Protection"
+          hidden
+        >
+          <section class="panel">
+            <h2>Domain protection</h2>
+            <p>
+              Block domains listed for malware, adware and scams. The list
+              updates daily and works when CareKoala is closed.
+            </p>
+            <p id="domain-status" class="status-line" role="status">
+              Checking domain protection…
+            </p>
+            <div class="actions">
+              <button id="domain-enable">Enable protection</button
+              ><button id="domain-update" class="secondary">
+                Update blocklist</button
+              ><button id="domain-disable" class="text-button">Disable</button>
+            </div>
+            <p class="hint">
+              Uses the StevenBlack hosts list. Windows administrator approval is
+              required for changes. Direct IP traffic, apps bypassing Windows
+              name resolution and unlisted domains may remain accessible.
+            </p>
+          </section>
+          <section class="panel" id="trigger-details">
+            <h2 id="trigger-summary">Personal trigger words</h2>
+            <p>
+              Choose words or phrases that are hard for you to see. If one
+              appears on screen, real mode requests a guardian check-in even
+              when the model score is low.
+            </p>
+            <label for="trigger-input">Word or phrase</label>
+            <div class="trigger-add">
+              <input
+                id="trigger-input"
+                maxlength="100"
+                autocomplete="off"
+                placeholder="Add a word or phrase"
+              /><button id="trigger-add" class="secondary">Add</button>
+            </div>
+            <ul
+              id="trigger-list"
+              class="trigger-list"
+              aria-label="Saved trigger words"
+            ></ul>
+            <p id="trigger-status" role="status"></p>
+            <p class="hint">
+              Whole words, ignoring capital letters. Up to 50 entries. The list
+              and matched words stay on this PC.
+            </p>
+          </section>
+          <section class="panel">
+            <h2>Start with Windows</h2>
+            <label class="switch-row"
+              ><span
+                >Open CareKoala at sign-in<small
+                  >Real mode resumes if it was enabled.</small
+                ></span
+              ><input id="startup-enabled" type="checkbox" role="switch"
+            /></label>
+          </section>
+        </section>
+        <section
+          id="page-review"
+          class="page"
+          aria-label="Check screen text"
+          hidden
+        >
+          <div class="grid two review-grid">
+            <section class="panel capture-panel">
+              <div class="section-heading">
+                <span class="step">1</span>
+                <h2>Choose what to read</h2>
+              </div>
+              <div class="capture-controls">
+                <select id="source-select" aria-label="Screen or window">
+                  <option>Loading screens…</option></select
+                ><button id="refresh-sources" class="text-button">
+                  Refresh
+                </button>
+              </div>
+              <div class="actions">
+                <button id="capture-button">Capture selected screen</button
+                ><button id="upload-button" class="secondary">
+                  Choose screenshot
+                </button>
+              </div>
+              <img
+                id="preview"
+                alt="Selected screenshot preview"
+                hidden
+              /><button id="ocr-button" disabled>
+                Read screenshot locally
+              </button>
+              <details>
+                <summary>Periodic manual checks</summary>
+                <label for="capture-interval">Pause between cycles</label
+                ><select id="capture-interval">
+                  <option value="15">15 seconds</option>
+                  <option value="30" selected>30 seconds</option>
+                  <option value="60">60 seconds</option>
+                </select>
+                <div class="actions">
+                  <button id="monitor-start" class="secondary">
+                    Start periodic capture</button
+                  ><button id="monitor-stop" class="text-button" disabled>
+                    Stop
+                  </button>
+                </div>
+              </details>
+              <p id="monitor-status" class="hint" role="status">
+                Periodic capture is off.
+              </p>
+              <p class="hint">
+                Choose only the window you want checked. Manual-mode guardian
+                alerts require your click.
+              </p>
+            </section>
+            <section class="panel">
+              <div class="section-heading">
+                <span class="step">2</span>
+                <h2>Check the text</h2>
+              </div>
+              <p id="ocr-status" class="quiet">No screenshot read yet</p>
+              <details id="review-details">
+                <summary>Review or correct recognized text</summary>
+                <div id="messages" class="messages empty">
+                  Recognized text will appear here.
+                </div>
+              </details>
+              <textarea
+                id="boundaries"
+                hidden
+                aria-label="Legacy mock boundaries"
+              ></textarea>
+            </section>
+            <section class="panel analysis-panel">
+              <div class="section-heading">
+                <span class="step">3</span>
+                <h2>Interpret the text</h2>
+              </div>
+              <button id="analyze-button" disabled>
+                Analyze reviewed text
+              </button>
+              <div id="analysis" class="analysis empty">No analysis yet.</div>
+            </section>
+          </div>
+        </section>
+      </main>
     </div>
-    <div id="backend-status" class="status neutral">Starting local backend…</div>
-  </header>
-
-  <section class="panel real-panel">
-    <h2>Real mode · automatic guardian check-ins</h2>
-    <p>Runs in the system tray: entire screen → local OCR → local model decision. Each cycle starts when processing finishes. A Yes decision automatically publishes an encrypted check-in request to your verified guardian. Screenshots and conversation text stay on this PC.</p>
-    <p class="hint">Trained CareKoala v2 · Llama-3.2-1B, 4-bit. Danger score: 0–3 low, 4–6 watch, 7–8 alert, 9–10 emergency. Scores of 7+ recommend a guardian check-in. This is not an emergency service.</p>
-    <button id="real-start">Start real mode in tray</button>
-    <p id="real-progress" class="hint" role="status">Real-mode progress will appear here. Reopen CareKoala from the tray to check it.</p>
-    <button id="real-stop" class="secondary">Pause real mode</button>
-    <label><input id="startup-enabled" type="checkbox"> Start CareKoala at Windows sign-in; resume real mode if it was enabled</label>
-    <p id="real-status" role="status">Real mode stopped</p>
-    <button id="guardian-test-send" class="secondary">Send test warning to Android</button>
-    <p class="hint">Sample: “This is a test warning from your paired CareKoala desktop. Please check in. No real concern was detected.” Uses encrypted delivery through ntfy.sh automatically. Requires verified pairing and Start receiving on Android. No gateway or topic setup. Works in mock mode without OCR or analysis.</p>
-    <p id="guardian-test-status" role="status" aria-live="polite"></p>
-    <details><summary>Guardian pairing</summary>
-      <p>Create a pairing code, transfer it privately to CareKoala Guardian on Android, then compare the fingerprint on both screens. Creating a new code revokes the old pairing on this PC.</p>
-      <button id="pair-create" class="secondary">Create new pairing code</button>
-      <button id="pair-forget" class="secondary">Forget guardian</button>
-      <textarea id="pair-code" readonly rows="3" aria-label="Private pairing code" hidden></textarea>
-      <p id="pair-fingerprint"></p>
-      <button id="pair-verify" class="secondary" disabled>Fingerprints match — verify guardian</button>
-      <p id="pair-status" role="status">No verified guardian</p>
-    </details>
-  </section>
-  <main>
-    <section class="panel capture-panel">
-      <div class="section-heading">
-        <div><span class="step">1</span><h2>Choose what to read</h2></div>
-        <button id="demo-button" class="ghost">Use demo conversation</button>
-      </div>
-      <div class="capture-controls">
-        <select id="source-select" aria-label="Screen or window"><option>Loading screens…</option></select>
-        <button id="refresh-sources" class="secondary">Refresh</button>
-        <button id="capture-button">Capture selected screen</button>
-        <button id="upload-button" class="secondary">Choose screenshot</button>
-      </div>
-      <div class="capture-controls">
-        <label for="capture-interval">Pause between cycles</label>
-        <select id="capture-interval"><option value="15">15 seconds</option><option value="30" selected>30 seconds</option><option value="60">60 seconds</option></select>
-        <button id="monitor-start">Start periodic capture</button>
-        <button id="monitor-stop" class="secondary" disabled>Stop</button>
-      </div>
-      <p id="monitor-status" role="status">Periodic capture is off.</p>
-      <p class="hint">Choose only the conversation window. While enabled: fresh screenshot → local OCR → local analysis. Stop prevents the next stage or cycle; a running stage finishes first. Speaker labels are estimates. In manual/demo mode, guardian alerts require your click. Real mode has separate automatic-alert controls above.</p>
-      <p class="hint">OCR runs locally. CareKoala releases the language model first so both heavy stages do not use memory together.</p>
-      <img id="preview" alt="Selected screenshot preview" hidden>
-      <button id="ocr-button" disabled>Read screenshot locally</button>
-    </section>
-
-    <section class="panel">
-      <div class="section-heading">
-        <div><span class="step">2</span><h2>Check the messages</h2></div>
-        <span id="ocr-status" class="quiet">No screenshot read yet</span>
-      </div>
-      <p class="hint">Correct OCR mistakes before scoring. The trained model scores screen text; speaker estimates do not affect its score.</p>
-      <details id="review-details"><summary>Review or correct recognized text and speakers</summary>
-      <div id="messages" class="messages empty">Captured messages will appear here.</div>
-      </details>
-      <textarea id="boundaries" hidden aria-label="Legacy mock boundaries"></textarea>
-    </section>
-
-    <section class="panel">
-      <div class="section-heading">
-        <div><span class="step">3</span><h2>Interpret the conversation</h2></div>
-        <button id="analyze-button" disabled>Analyze reviewed messages</button>
-      </div>
-      <div id="analysis" class="analysis empty">No analysis yet.</div>
-    </section>
-  </main>
-
-  <div id="busy" class="busy" hidden><div class="spinner"></div><p id="busy-text">Working locally…</p></div>
-  <div id="guardian-dialog" class="dialog-backdrop" hidden role="dialog" aria-modal="true" aria-labelledby="guardian-title">
-    <section class="guardian-dialog">
-      <p class="eyebrow">SUPPORT RECOMMENDATION</p>
-      <h2 id="guardian-title">Consider talking with your guardian</h2>
-      <p>CareKoala found a concern in the messages you reviewed. You can ask your paired guardian for help.</p>
-      <p class="hint">Only a short CareKoala analysis and a request for help will be sent—never this screenshot or the full conversation.</p>
-      <div class="dialog-actions">
-        <button id="guardian-send">Send help alert</button>
-        <button id="guardian-dismiss" class="secondary">Not now</button>
-      </div>
-      <p id="guardian-status" class="quiet"></p>
-    </section>
-  </div>
-  <script src="renderer.js"></script>
-</body>
+    <div id="busy" class="busy" hidden>
+      <div class="spinner"></div>
+      <p id="busy-text">Working locally…</p>
+    </div>
+    <div
+      id="guardian-dialog"
+      class="dialog-backdrop"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="guardian-title"
+    >
+      <section class="guardian-dialog">
+        <h2 id="guardian-title">Guardian notification</h2>
+        <p id="guardian-reason">
+          CareKoala found a concern in the text you reviewed. You can ask your
+          paired guardian for help.
+        </p>
+        <p class="hint">Your screenshot and screen text stay on this PC.</p>
+        <div class="actions">
+          <button id="guardian-send">Send notification</button
+          ><button id="guardian-dismiss" class="secondary">Cancel</button>
+        </div>
+        <p id="guardian-status" class="quiet"></p>
+      </section>
+    </div>
+    <script src="renderer.js"></script>
+  </body>
 </html>
-

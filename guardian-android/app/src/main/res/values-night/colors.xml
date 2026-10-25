@@ -1,0 +1,12 @@
+<resources>
+    <color name="ck_background">#1D1B18</color>
+    <color name="ck_surface">#25221E</color>
+    <color name="ck_surface_alt">#302B25</color>
+    <color name="ck_text">#EEE8DF</color>
+    <color name="ck_muted">#BCB0A1</color>
+    <color name="ck_border">#8B7D6C</color>
+    <color name="ck_accent">#E2B495</color>
+    <color name="ck_on_accent">#2C1B10</color>
+    <color name="ck_accent_container">#443024</color>
+    <color name="ck_error">#FFB4AC</color>
+</resources>

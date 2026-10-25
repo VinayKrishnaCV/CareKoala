@@ -2,8 +2,9 @@
 .venv/
 __pycache__/
 *.pyc
+.claude/
 
-# Large files that are NOT stored in git (GitHub rejects files > 100 MB).
+# Local model assets and downloads. The public source export excludes model binaries.
 # Get them back after cloning with:
 #   python engine/download_assets.py        -> base model, EasyOCR weights, llama.cpp binaries
 #   training/download_base_model.sh         -> base model + tokenizer files (for training)

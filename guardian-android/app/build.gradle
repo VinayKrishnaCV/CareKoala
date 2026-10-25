@@ -1,8 +1,25 @@
 plugins { id 'com.android.application' }
+// Release signing lives outside the repository (default ~/.carekoala/signing).
+// Without it, assembleRelease still builds, but leaves the APK unsigned.
+def signingFile = new File(System.getenv('CAREKOALA_SIGNING_PROPERTIES') ?: "${System.getProperty('user.home')}/.carekoala/signing/keystore.properties")
+def signing = new Properties()
+if (signingFile.exists()) signingFile.withInputStream { signing.load(it) }
 android {
     namespace 'org.carekoala.guardian'
     compileSdk 35
-    defaultConfig { applicationId 'org.carekoala.guardian'; minSdk 26; targetSdk 35; versionCode 6; versionName '0.1.5' }
+    defaultConfig { applicationId 'org.carekoala.guardian'; minSdk 26; targetSdk 35; versionCode 12; versionName '0.4.2' }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    signingConfigs {
+        if (signingFile.exists()) release {
+            storeFile new File(signing.getProperty('storeFile')); storePassword signing.getProperty('storePassword')
+            keyAlias signing.getProperty('keyAlias'); keyPassword signing.getProperty('keyPassword')
+        }
+    }
+    buildTypes { release { minifyEnabled false; if (signingFile.exists()) signingConfig signingConfigs.release } }
 }
-dependencies { testImplementation 'junit:junit:4.13.2'; testImplementation 'org.json:json:20240303' }
+dependencies {
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.json:json:20240303'
+}

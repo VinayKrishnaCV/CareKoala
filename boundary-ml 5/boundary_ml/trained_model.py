@@ -49,7 +49,7 @@ def parse_score(content):
     return score,category
 
 def level(score):
-    return 'emergency' if score>=9 else 'alert' if score>=7 else 'watch' if score>=4 else 'none'
+    return 'emergency' if score>=9 else 'alert' if score>=6 else 'watch' if score>=4 else 'none'
 
 class TrainedModel:
     def __enter__(self):
@@ -102,9 +102,9 @@ class TrainedModel:
         evidence=[m.id for m in request.messages if m.text in excerpt or excerpt in m.text or
                   any(line and line in m.text for line in excerpt.splitlines())][:12]
         concerns=[]
-        if score>=7:
+        if score>=6:
             concerns=[Concern(type=category,evidence_ids=evidence or [request.messages[0].id],
                        explanation=f'The trained model rated this screen text {score}/10 ({category.replace("_"," ")}). A guardian check-in is recommended.')]
-        return Analysis(status='concern_detected' if score>=7 else 'no_clear_concern',concerns=concerns,
-            score=score,category=category,level=level(score),contact_guardian=score>=7,
+        return Analysis(status='concern_detected' if score>=6 else 'no_clear_concern',concerns=concerns,
+            score=score,category=category,level=level(score),contact_guardian=score>=6,
             windows=len(chunks),model='CareKoala Llama-3.2-1B Q4_K_M + LoRA v2')

@@ -1,0 +1,15 @@
+{
+  "siteUrl": "",
+  "repoUrl": "https://github.com/VinayKrishnaCV/CareKoala",
+  "downloadBase": "downloads/",
+  "desktop": {
+    "packageJson": "../boundary-ml 5/electron-app/package.json",
+    "artifact": "../boundary-ml 5/electron-app/dist/CareKoala-Setup-{version}-x64.exe"
+  },
+  "guardian": {
+    "gradle": "../guardian-android/app/build.gradle",
+    "artifact": "../guardian-android/app/build/outputs/apk/release/app-release.apk",
+    "publishedName": "CareKoala-Guardian-{version}.apk"
+  },
+  "notices": "../boundary-ml 5/electron-app/staging/engine/licenses"
+}

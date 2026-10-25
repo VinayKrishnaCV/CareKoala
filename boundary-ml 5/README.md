@@ -1,77 +1,115 @@
-# CareKoala desktop
+# CareKoala PC application
 
-CareKoala reads screen text locally with EasyOCR, scores it with the trained
-CareKoala v2 Llama-3.2-1B model, and can send encrypted guardian check-in requests
-through ntfy.sh. Screenshot and conversation content remain on the computer.
+Electron provides the Windows interface, tray, screen capture, guardian connection and unlock overlay. A Python API on `127.0.0.1:8765` runs local workers. EasyOCR extracts text; Llama-3.2-1B-Instruct Q4_K_M with the separate CareKoala v2 LoRA adapter scores it.
 
-## Start on Windows
+Version **0.4.2** includes one-code QR pairing, multiple-person Guardian support, persistent themes, personal trigger words, optional startup and hosts-based domain blocking. This version also confirms successful unlocks back to Android and fixes mouse input when lockdown opens. See the [release notes](../CHANGELOG.md).
 
-From this directory in PowerShell:
+## Requirements and installation
+
+Use Windows 10 or 11 x64, Python 3.12 and Node.js 22 or newer. CUDA is not required. OCR and inference run sequentially to limit peak memory; performance depends on the PC and amount of text.
+
+From the repository root in PowerShell:
+
+```powershell
+cd 'boundary-ml 5'
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\python.exe -m pip install -r requirements-ocr.txt
+.\.venv\Scripts\python.exe -m pip install -e .
+cd electron-app
+npm ci
+cd ..
+```
+
+Download the base model from the repository root:
+
+```powershell
+& '.\boundary-ml 5\.venv\Scripts\python.exe' .\NewModel\CareKoala\engine\download_assets.py --only model
+```
+
+Supply these files before starting real inference:
+
+```text
+NewModel/CareKoala/models/base/Llama-3.2-1B-Instruct-Q4_K_M.gguf
+NewModel/CareKoala/models/carekoala-lora-v2.gguf
+```
+
+The downloader does not retrieve the trained adapter. Model weights are not tracked in this source publication. Keep the adapter separate from the base; do not merge and requantize it as a replacement for the tested configuration.
+
+From `boundary-ml 5`, install the matching Windows runtime:
+
+```powershell
+.\scripts\install_model_runtime.ps1
+```
+
+The script verifies SHA-256 before extracting llama.cpp b11036 into `runtime/llama-b11036`. EasyOCR downloads its English recognition and detection weights on first use unless a local model directory is configured. Setup needs internet access even though screen processing is local.
+
+For assets stored elsewhere, set `CAREKOALA_MODEL_ROOT` to the CareKoala model directory and `CAREKOALA_LLAMA_SERVER` to the matching executable.
+
+## Run and restart
+
+From `boundary-ml 5`:
 
 ```powershell
 .\scripts\start_desktop.ps1
 ```
 
-For the explicitly labelled mock UI test:
+The launcher checks the environment before opening Electron. To test the explicitly marked mock workflow:
 
 ```powershell
 .\scripts\start_desktop.ps1 -Mock
 ```
 
-Quit an old running instance from its tray menu before restarting after an update.
+Mock analysis is deterministic development output. Real mode always uses trained inference, including when launched with `-Mock`.
 
-## Trained model
+Quit the old instance from the tray before restarting after source edits. Closing the window only hides it. An installed application also needs an update before it can use changes made in a separate source checkout.
 
-The app reads the supplied weights from ../NewModel/CareKoala. It uses the Q4_K_M
-Llama base and carekoala-lora-v2.gguf together. The previous Qwen runtime defaults
-have been removed. See MODEL-INTEGRATION.md for asset paths, score policy, process
-cleanup, and validation. The 18 MB official Windows CPU runtime is already installed;
-scripts/install_model_runtime.ps1 reinstalls it with SHA-256 verification.
+## Pair and test
 
-The training contract is **0–10**, including 0 for safe content:
-- 0–3: low
-- 4–6: watch
-- 7–8: alert
-- 9–10: emergency
+1. Install the custom [Android Guardian](../guardian-android/README.md).
+2. On the PC's **Guardian** page, name the person or PC and create a QR/code.
+3. On Android, choose **Add person**, then scan the QR or enter the single `CK2-` code.
+4. Approve the guardian name on the PC within the ten-minute invitation window.
+5. Allow phone notifications, send a test notification, then test the overlay.
 
-A score of 7 or above recommends a guardian check-in. These are screen-content
-scores, not a diagnosis. Emergency is a model level, not an emergency-service call.
+Scanning and typing perform the same enrollment. Alert encryption and public-key setup are exchanged together. Guardian keeps up to ten people independent.
 
-## Desktop and phone
+If a connection fails, compare the public pairing fingerprints in connection details. A saved PC pairing can belong to a different phone profile. Preserve unrelated people when repairing a mismatch.
 
-1. Install the custom CareKoala Guardian Android app.
-2. Desktop Guardian pairing: create a code and privately transfer it to Android.
-3. Phone: Inspect pairing code, compare fingerprints, save pairing.
-4. Verify the same fingerprint on desktop.
-5. Phone: Start receiving and grant notification permission.
-6. Wait for Listening via ntfy.sh, then desktop: Send test warning to Android.
-7. Confirm the phone notification before starting unattended real mode.
+## Monitoring policy
 
-No relay server, gateway URL, account, or manual topic setup is required. Both
-devices derive a random-looking ntfy topic with HMAC from their shared pairing
-secret. AES-GCM authenticates and encrypts alerts; Android checks expiry and replay.
-Desktop publication is not confirmation of phone delivery. The custom Android app
-uses a visible foreground stream, not the official ntfy app's FCM integration.
+| Score | Real-mode action |
+| --- | --- |
+| 0-5 | Continue without an automatic check-in |
+| 6-7 | Send an encrypted check-in |
+| 8-10 | Pause monitoring, cover every display and send an encrypted unlock event |
 
-## Modes and memory
+Real mode captures the entire screen and starts its next cycle after processing finishes. OCR and inference share a serialized queue and do not occupy memory together. Unchanged text skips inference. A continuing concern is deduplicated, but an escalation to 8+ still locks after an earlier alert.
 
-Manual mode: capture/load screenshot, read OCR, review text, analyze. Review displays
-the score, category and guardian recommendation. A guardian send is explicit.
+Personal trigger words match whole words or phrases while ignoring case, punctuation and line breaks. A match can request a check-in even with a low score or failed inference. The trigger text stays on the PC.
 
-Real mode: entire-screen capture -> OCR process exits -> trained model process
-runs and exits -> encrypted check-in if score >=7. Each new cycle starts after
-processing completes. Repeated positive screens do not repeatedly send alerts.
-Tray controls open/pause/quit. Closing the window leaves the app in the tray.
-Windows startup is optional and starts real mode only with saved verified pairing.
+Manual review captures a selected screen/window or loads an image, then lets the user correct OCR before analysis. Its periodic capture controls are separate from real mode. Sending a guardian message from manual review requires a click.
 
-Mock mode uses real OCR and deterministic legacy test analysis; it does not claim
-a trained-model score. Real mode always uses the trained model, even if launched
-with -Mock. The separate test-warning button works without OCR/model inference.
+Requests are bounded to 40 messages and 20,000 text characters. Electron splits larger OCR results without dropping late evidence. The model scores all windows of at most 520 characters; the highest score determines the result. Invalid inference and missing assets are errors, never safe scores.
 
-## Development
+## Unlock, persistence and appearance
 
-The existing Python 3.12 .venv, CPU EasyOCR packages and Electron dependencies are
-used. Run scripts/doctor.py for prerequisites. Test commands:
+The phone keeps its RSA private key in Android Keystore. The PC encrypts a one-time key and timestamp with the phone's public key. The guardian authenticates on Android before replying with the key or reading it for the PC user to type.
+
+After either successful unlock path, the PC saves the released state and sends an encrypted completion receipt. Guardian shows **PC unlocked**, removes that request's controls and stored key, and saves completion across restart. Until confirmation arrives, its action reads **Send unlock again**. Receipts cannot clear a newer request or another person's state. Pending receipts survive a PC restart and retry within five minutes; replaced pairings cannot receive them.
+
+The overlay uses frameless windows sized to each display, rather than native Windows fullscreen. Focus follows the cursor's display. Mouse movement, clicks and typing work without the Start-menu workaround. Monitoring remains paused after unlock.
+
+Pairing, trigger words and monitoring preferences persist locally. Optional sign-in startup resumes configured real mode. Both apps offer saved light/dark themes; Android preserves enrollment and form drafts during theme changes. Android force-stop, battery restrictions and network loss can still interrupt background delivery.
+
+## Domain protection
+
+**Protection** contains trigger words, startup and the optional hosts sinkhole. A narrow helper requests UAC, preserves custom entries, downloads the StevenBlack list and installs a daily updater. Failed downloads retain the last valid list. Disabling removes CareKoala's block and task.
+
+This is domain blocking, not packet filtering. Direct IP traffic, resolver bypass and new/unlisted threats remain possible. See [DOMAIN-PROTECTION.md](electron-app/DOMAIN-PROTECTION.md).
+
+## Tests and source
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -q
@@ -79,10 +117,6 @@ cd electron-app
 node --test test/*.test.js
 ```
 
-The HTTP backend runs only on 127.0.0.1:8765. Requests are bounded and chunked;
-model windows are <=520 characters and every window is scored. Invalid inference
-fails visibly instead of falling back to another model or a safe score.
+The API and workers do not send screen content, scores or trigger words to ntfy.sh. The relay sees ciphertext and routing/network metadata.
 
-The older boundary dataset/training/evaluation modules remain historical tools,
-not the active model. For the supplied model use ../NewModel/CareKoala/README.md and
-its training directory. Do not merge and requantize its LoRA adapter.
+See [model integration](MODEL-INTEGRATION.md), [Electron source](electron-app/README.md) and the [root guide](../README.md). The older boundary-training modules are historical research tools, not the deployed model.

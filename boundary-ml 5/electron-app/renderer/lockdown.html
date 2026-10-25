@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'"
+    />
+    <title>CareKoala guardian check-in</title>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="lockdown.css" />
+  </head>
+  <body>
+    <main>
+      <p class="brand">CAREKOALA · GUARDIAN CHECK-IN</p>
+      <p id="reason">
+        CareKoala detected content that needs your guardian’s attention.
+      </p>
+      <p id="remote" role="status"></p>
+      <form id="unlock">
+        <label for="key">Guardian unlock key</label
+        ><input
+          id="key"
+          type="password"
+          maxlength="32"
+          autocomplete="off"
+          spellcheck="false"
+          autofocus
+        /><button>Unlock CareKoala</button>
+      </form>
+      <p id="result" role="alert"></p>
+      <p id="delivery" role="status"></p>
+      <button id="resend" type="button">Send key again</button>
+      <p class="small">
+        If delivery expired, sending again replaces the old key. Windows
+        security controls remain available.
+      </p>
+    </main>
+    <aside class="facts" aria-label="Facts">
+      <p id="fact" class="fact" aria-live="polite"></p>
+      <button id="next-fact" type="button">Next fact</button>
+      <p id="fact-count" class="small"></p>
+    </aside>
+    <script src="lockdown-renderer.js"></script>
+    <script src="fun-facts.js"></script>
+  </body>
+</html>

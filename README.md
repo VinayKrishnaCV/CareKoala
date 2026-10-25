@@ -1,171 +1,70 @@
 # CareKoala
 
-**Local screen-text analysis with encrypted guardian check-ins.**
+CareKoala checks screen text on a Windows PC and sends encrypted check-in requests to a guardian's Android phone. EasyOCR and the classification model run on the PC. Android receives alerts and holds the guardian's private key.
 
-CareKoala reads text from a computer screen, evaluates it with a locally running language model, and can ask a paired guardian to check in when concerning content is detected. It combines an Electron desktop app, EasyOCR, a fine-tuned Llama model, and a companion Android receiver.
+Current application version: **0.4.2**. The Windows and Android source are both public in this repository. Model weights, signing keys, personal settings and compiled applications are excluded.
 
-Screen capture, OCR, and model inference happen on the computer. Guardian notifications use an encrypted message sent through ntfy.sh; they do not include screenshots, screen text, or model scores.
+## Monitoring
 
-> CareKoala is a screening prototype, not a diagnostic tool or emergency service. It can miss concerning content and raise false alarms. Use it with the knowledge of the person whose screen is monitored and keep a human involved in decisions.
+Real mode captures the entire screen and processes one stage at a time: capture, OCR, OCR exit, local inference, model release, then policy. The next cycle starts when processing finishes. Unchanged text skips repeated inference, and a continuing concern does not repeatedly notify the guardian.
 
-## What it does
+| Score | Real-mode action |
+| --- | --- |
+| 0-5 | Continue without an automatic alert |
+| 6-7 | Send an encrypted guardian check-in |
+| 8-10 | Pause monitoring, cover each display with an unlock screen and send an encrypted one-time key to the guardian |
 
-- **Manual review:** capture or load a screenshot, extract text, review it, and run analysis. Sending a guardian check-in is explicit.
-- **Background monitoring:** run capture, OCR, and inference in sequence; request a guardian check-in for scores of 7 or above. A continuous positive streak sends one alert rather than repeated notifications.
-- **Local inference:** use Llama-3.2-1B-Instruct Q4_K_M with the separate CareKoala v2 LoRA adapter. OCR and inference processes run sequentially to limit simultaneous memory use.
-- **Guardian pairing:** exchange a pairing code, compare fingerprints, and receive authenticated, encrypted check-in requests in the Android app.
-- **Pause and recovery:** control monitoring from the desktop tray. Pairing and enabled state persist across restarts; explicit Pause disables automatic resumption.
+Personal trigger words can request a check-in independently of the score. An escalation to 8 or higher still opens the overlay after an earlier notification. Manual review is separate: capture or load an image, correct OCR text and analyze it. Sending a guardian message from manual review requires a click. Mock mode is an explicit development option.
 
-## How the components fit together
+Scores describe visible text, not a person's diagnosis or safety. OCR errors, quotations and missing context can change the result. CareKoala is not an emergency service.
 
-```mermaid
-flowchart LR
-    A[Electron screen capture] --> B[Local EasyOCR process]
-    B --> C[Local Python API and inference worker]
-    C --> D[Llama.cpp: base model + CareKoala v2 adapter]
-    D --> E[Score and category shown on desktop]
-    E --> F[Guardian check-in decision]
-    F --> G[AES-GCM encrypted message]
-    G --> H[ntfy.sh relay]
-    H --> I[Android verifies and decrypts]
-    I --> J[Guardian notification]
-```
+## Pair a guardian
 
-The desktop starts its Python API on `127.0.0.1:8765`. Text is split into model-sized windows and the highest score determines the result. Invalid model output or missing assets produce an error rather than a safe score.
+1. On the PC, open **Guardian**, name the person or PC and create a pairing QR and code.
+2. On Android, choose **Add person**. Scan the QR or type the single `CK2-` code displayed below it. The code can also be shared privately with a remote guardian.
+3. Check the guardian name on the PC and choose **Approve guardian**. Invitations expire after ten minutes.
+4. Allow Android notifications and keep receiving enabled.
+5. Send a test notification, then test the lockdown overlay before using real mode.
 
-| Score | Level | Desktop behavior |
-| --- | --- | --- |
-| 0–3 | None / low | No automatic guardian check-in |
-| 4–6 | Watch | No automatic guardian check-in |
-| 7–8 | Alert | Guardian check-in recommended; automatic in enabled real mode |
-| 9–10 | Emergency | Same guardian mechanism; no emergency-service call |
+Pairing configures alert encryption and guardian unlock together. There is no gateway field, relay account or manually entered topic. Guardian supports ten people with separate keys, histories, requests and receiving preferences.
 
-Model categories are `safe`, `distress`, `self_harm`, `harassment`, `hate_speech`, and `violence`.
+After checking in, the guardian authenticates on the phone and sends the current unlock key, or reads it for the PC user to type. The PC confirms a successful unlock through an encrypted receipt. Guardian then shows **PC unlocked**, removes that request's controls and saves completion across restart. Sending a key alone is not proof of an unlock.
 
-## Repository guide
+## PC controls
 
-| Directory | Contents | Start here |
-| --- | --- | --- |
-| `boundary-ml 5/` | Active desktop app, Python API, inference and guardian workers, tests, and earlier boundary-model tooling | [Desktop README](boundary-ml%205/README.md) |
-| `NewModel/CareKoala/` | Model engine, standalone screen monitor, data preparation, LoRA training, export, and evaluation | [Model README](NewModel/CareKoala/README.md) |
-| `guardian-android/` | Native Android guardian receiver, encrypted pairing storage, notifications, and protocol tests | [Android README](guardian-android/README.md) |
+- **Overview:** start or pause real mode and review the score policy.
+- **Guardian:** pair a phone, check the connection, send a test notification or test the overlay.
+- **Protection:** edit trigger words, manage domain blocking and choose Windows sign-in startup.
+- **Check screen text:** capture, correct OCR and analyze manually.
 
-The current desktop integration uses the model under `NewModel/CareKoala/`. The older boundary training scripts and notebook are retained for earlier experiments. The OpenDHT plan is historical; the current desktop-to-phone transport is ntfy.
+Closing the window leaves the app in the system tray. Pairing and monitoring preferences persist locally. Optional sign-in startup resumes configured real mode. A guardian unlock leaves monitoring paused until the PC user restarts it.
 
-## Getting started on Windows
+Both apps offer persistent light/dark themes with compact controls. Android retains enrollment and form drafts during theme changes. The PC overlay accepts mouse movement, button clicks and typing without opening the Start menu.
 
-### 1. Prepare the desktop environment
+Domain protection is an optional Windows hosts sinkhole using the StevenBlack list. It preserves custom hosts entries and installs a daily updater through an elevated helper. It blocks listed names, not direct IP traffic or every new scam.
 
-Install Git, Python 3.12, and Node.js with npm. Then, in PowerShell:
+## Source and setup
 
-```powershell
-git clone https://github.com/VinayKrishnaCV/CareKoala.git
-cd CareKoala
-cd "boundary-ml 5"
-py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements-ocr.txt
-cd electron-app
-npm ci
-cd ..
-```
+| Directory | Guide |
+| --- | --- |
+| `boundary-ml 5/` | [PC setup, Python API and workers](<boundary-ml 5/README.md>) |
+| `boundary-ml 5/electron-app/` | [Electron interface, tray, pairing and overlay](<boundary-ml 5/electron-app/README.md>) |
+| `guardian-android/` | [Android interface, keys and receiver](guardian-android/README.md) |
+| `NewModel/CareKoala/` | [Model runtime and training source](NewModel/CareKoala/README.md) |
+| `website/` | [Static download page and release metadata](website/README.md) |
 
-The dependency files include the older training stack and `opendht`, although the current desktop notification worker uses ntfy. Native dependency installation may require additional platform setup; this repository does not yet provide a separate minimal desktop requirements file. The desktop and model-training folders also pin different dependency versions, so use separate virtual environments for training.
+Real inference requires the Q4_K_M Llama base, the trained CareKoala v2 adapter and llama.cpp b11036. The downloader retrieves the base, OCR weights and runtime; the trained adapter must be supplied separately. Missing assets produce an error rather than an untrained or fabricated safe result.
 
-### 2. Supply the model assets
+## Privacy and security
 
-The desktop expects these files relative to the repository root:
+Screenshots, OCR text, scores and trigger words stay on the PC. `ntfy.sh` carries AES-256-GCM authenticated ciphertext. The relay can observe routing, timing and network metadata; remote alerts and unlocks require internet access.
 
-```text
-NewModel/CareKoala/models/
-├── base/Llama-3.2-1B-Instruct-Q4_K_M.gguf
-└── carekoala-lora-v2.gguf
-```
+Android generates its RSA private key in Keystore and never sends it to the PC. The PC generates the one-time unlock key and encrypts its timestamped bundle with the guardian's public key. Unlock replies use a separate authenticated channel. Completion receipts are bound to request IDs, so an old receipt cannot clear a newer request or another person's PC.
 
-Download the base model and install the Windows CPU inference runtime, from `boundary-ml 5/`:
+The overlay is application-level protection, not an OS kiosk. Windows security controls remain available. No alternate recovery password or offline recovery-code feature has been implemented.
 
-```powershell
-.\.venv\Scripts\python.exe ..\NewModel\CareKoala\engine\download_assets.py --only model
-.\scripts\install_model_runtime.ps1
-```
+## Validation and releases
 
-**The trained v2 adapter must be supplied separately.** It is absent from the tracked repository, and the asset downloader does not download it, despite older text in the model documentation saying it is included. Obtain the trained adapter from the project maintainers before running real inference. Keep the base and adapter separate; do not merge and requantize them.
+Version 0.4.2 passed 49 desktop tests, 15 Android tests and Android lint. Device checks covered overlay mouse/keyboard input, encrypted unlock confirmation, phone restart and isolation between people. These checks do not establish model accuracy or guaranteed delivery under every Android battery policy.
 
-EasyOCR may download its recognition weights on first use. Initial dependency and asset downloads require internet access; guardian delivery also requires a network connection.
-
-### 3. Check prerequisites and launch
-
-From `boundary-ml 5/`:
-
-```powershell
-.\.venv\Scripts\python.exe scripts\doctor.py
-.\scripts\start_desktop.ps1
-```
-
-The launcher runs the prerequisite check before starting Electron. Fix reported dependency or asset errors before proceeding.
-
-For the explicitly labelled mock analysis UI:
-
-```powershell
-.\scripts\start_desktop.ps1 -Mock
-```
-
-Mock analysis uses real OCR and deterministic test responses. The launcher still checks for model assets, and starting **real mode** still uses the trained model even when the app was launched with `-Mock`.
-
-Closing the desktop window leaves the app in the tray. Use **Pause** to stop monitoring or **Quit** to exit. Enabled monitoring can resume on the next normal launch; Windows sign-in startup is optional. See [connection recovery](boundary-ml%205/CONNECTION-PERSISTENCE.md).
-
-For alternate model/runtime locations, see `CAREKOALA_MODEL_ROOT` and `CAREKOALA_LLAMA_SERVER` in the [integration guide](boundary-ml%205/MODEL-INTEGRATION.md). The standalone engine includes macOS/Linux support, but the setup above targets the Windows desktop integration; see the [model guide](NewModel/CareKoala/README.md) for other platforms.
-
-## Connect an Android guardian
-
-The companion app requires Android 8 or newer. To build it, install JDK 17, Android SDK 35, and Gradle 8.13, then run from the repository root:
-
-```powershell
-cd guardian-android
-gradle :app:assembleDebug :app:testDebugUnitTest
-```
-
-The repository does not include a Gradle wrapper. The debug APK is generated under `guardian-android/app/build/outputs/apk/debug/`.
-
-After installing the app:
-
-1. Create a pairing code on the desktop and transfer it privately to the phone.
-2. Inspect the code in the Android app, compare fingerprints on both devices, and save/verify the pairing.
-3. Start receiving on Android and grant notification permission.
-4. Wait for the listening status, then send a test warning from the desktop.
-5. Confirm receipt on the phone before enabling unattended monitoring.
-
-No ntfy account or manually configured topic is needed. A successful publish is not proof of phone delivery. Battery restrictions, force-stop, connectivity, and relay availability can delay or prevent notifications. See the [Android guide](guardian-android/README.md) for pairing and receiver behavior.
-
-## Privacy and delivery
-
-- OCR and model inference run locally; the normal guardian message contains no screenshot, screen text, category, or score.
-- Pairing secrets are protected locally using Electron secure storage and Android Keystore-backed encryption.
-- Alerts use AES-256-GCM, expire after five minutes, and are checked for replay by the receiver.
-- ntfy sees encrypted payloads and network metadata, including topics and timing. It may cache ciphertext.
-- There is no phone receipt acknowledgement. A local notification test does not verify desktop-to-phone delivery.
-
-## Development and tests
-
-With the desktop dependencies installed, run from the repository root:
-
-```powershell
-cd "boundary-ml 5"
-.\.venv\Scripts\python.exe -m unittest discover -s tests -q
-cd electron-app
-npm test
-```
-
-The suites cover API/schema handling, model score parsing and thresholds, windowing, worker cleanup, the Electron pipeline, real-mode behavior, and guardian encryption. Android JVM protocol tests run with the Gradle command above. These checks do not replace real model evaluation or a two-device delivery test.
-
-For model development, use the scripts in `NewModel/CareKoala/training/` and its separate requirements files. The [model README](NewModel/CareKoala/README.md) documents datasets, training, export, reported evaluation results, and known failure cases. Those reported results are dataset measurements, not clinical validation.
-
-## Limitations
-
-Screen text can describe something the user is reading rather than their own state. Context, sarcasm, OCR errors, and language differences can affect scores. The configured OCR reads English/Latin-script text; it does not read Devanagari. Both false positives and missed concerns remain possible, and a guardian or emergency response should never depend on this prototype alone.
-
-## Licenses and attribution
-
-Built with Llama. The base model and adapter are subject to the [Llama 3.2 Community License](https://www.llama.com/llama3_2/license/). EasyOCR uses Apache-2.0, and the vendored llama.cpp conversion tools include their [MIT license](NewModel/CareKoala/training/third_party/llama.cpp/LICENSE).
-
-Datasets retain their individual terms; see the [model documentation](NewModel/CareKoala/README.md#how-the-model-was-trained), including its note about a source with no stated license. This repository currently has no project-wide license file.
+See [CHANGELOG.md](CHANGELOG.md) for this version's changes. Packaging an installer or APK is a separate release step. Third-party terms remain applicable; the model integration is Built with Llama.

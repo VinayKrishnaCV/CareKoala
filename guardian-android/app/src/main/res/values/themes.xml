@@ -1,0 +1,22 @@
+<resources>
+    <style name="Theme.CareKoala" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/ck_accent</item>
+        <item name="colorOnPrimary">@color/ck_on_accent</item>
+        <item name="colorPrimaryContainer">@color/ck_accent_container</item>
+        <item name="colorOnPrimaryContainer">@color/ck_text</item>
+        <item name="colorSecondary">@color/ck_accent</item>
+        <item name="colorOnSecondary">@color/ck_on_accent</item>
+        <item name="colorSecondaryContainer">@color/ck_surface_alt</item>
+        <item name="colorOnSecondaryContainer">@color/ck_text</item>
+        <item name="colorSurface">@color/ck_surface</item>
+        <item name="colorOnSurface">@color/ck_text</item>
+        <item name="colorOnSurfaceVariant">@color/ck_muted</item>
+        <item name="colorOutline">@color/ck_border</item>
+        <item name="colorError">@color/ck_error</item>
+        <item name="android:colorBackground">@color/ck_background</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/ck_background</item>
+        <item name="android:navigationBarColor">@color/ck_background</item>
+    </style>
+</resources>

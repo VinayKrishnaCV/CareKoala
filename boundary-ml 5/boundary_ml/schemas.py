@@ -77,10 +77,10 @@ class Analysis(BaseModel):
     @model_validator(mode="after")
     def validate_semantics(self) -> "Analysis":
         if self.score is not None:
-            expected='emergency' if self.score>=9 else 'alert' if self.score>=7 else 'watch' if self.score>=4 else 'none'
-            if self.category is None or self.level!=expected or self.contact_guardian is not (self.score>=7):
+            expected='emergency' if self.score>=9 else 'alert' if self.score>=6 else 'watch' if self.score>=4 else 'none'
+            if self.category is None or self.level!=expected or self.contact_guardian is not (self.score>=6):
                 raise ValueError('Score policy mismatch')
-            if self.status!=('concern_detected' if self.score>=7 else 'no_clear_concern'):
+            if self.status!=('concern_detected' if self.score>=6 else 'no_clear_concern'):
                 raise ValueError('Score status mismatch')
         if self.status == "concern_detected" and not self.concerns:
             raise ValueError("concern_detected requires at least one concern")

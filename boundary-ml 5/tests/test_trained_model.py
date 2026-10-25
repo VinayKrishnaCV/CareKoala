@@ -9,7 +9,15 @@ class TrainedModelTests(unittest.TestCase):
         for value in ['11, "category":"safe"','true, "category":"safe"','-1, "category":"safe"','7.5, "category":"safe"','7, "category":"invented"','oops']:
             with self.assertRaises((ValueError,TypeError)):parse_score(value)
     def test_thresholds(self):
-        self.assertEqual([level(x) for x in [0,3,4,6,7,8,9,10]],['none','none','watch','watch','alert','alert','emergency','emergency'])
+        self.assertEqual([level(x) for x in [0,3,4,6,7,8,9,10]],['none','none','watch','alert','alert','alert','emergency','emergency'])
+    def test_notifications_begin_at_six(self):
+        request=AnalyzeRequest(conversation_id='threshold',messages=[{'id':'M1','speaker':'other','text':'test content'}])
+        model=TrainedModel()
+        for score in range(11):
+            model.score_window=Mock(return_value=(score,'self_harm'))
+            result=model.analyze(request)
+            self.assertEqual(result.contact_guardian,score>=6)
+            self.assertEqual(result.status,'concern_detected' if score>=6 else 'no_clear_concern')
     def test_all_windows_scored_and_late_alert_preserved(self):
         text='\n'.join(('safe '+str(i)+' x'*250) for i in range(12))+'\nlate warning'
         chunks=windows(text)

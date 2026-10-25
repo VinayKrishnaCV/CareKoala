@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'"
+    />
+    <title>Download CareKoala for Windows and Android</title>
+    <meta
+      name="description"
+      content="CareKoala reads a Windows PC's screen on that PC and checks in with a guardian's Android phone when a message looks harmful. Download version {{desktop.version}}."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="theme-color"
+      content="#F5F2EC"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#1D1B18"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta property="og:type" content="website" />
+
+    <meta
+      property="og:description"
+      content="Local screen-safety check-ins for Windows, with a guardian app for Android. Screenshots and messages stay on the PC."
+    />
+    <meta property="og:image" content="{{site.url}}assets/img/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="{{site.url}}" />
+    <link rel="icon" href="assets/img/koala.svg" type="image/svg+xml" />
+    <link
+      rel="icon"
+      href="assets/img/favicon-32.png"
+      sizes="32x32"
+      type="image/png"
+    />
+    <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png" />
+    <link
+      rel="preload"
+      href="assets/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <script src="assets/theme.js"></script>
+    <link rel="stylesheet" href="assets/site.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "CareKoala",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Windows 10, Windows 11, Android 8.0+",
+        "softwareVersion": "{{desktop.version}}",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "downloadUrl": "{{site.url}}{{desktop.url}}",
+        "fileSize": "{{desktop.size}}"
+      }
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#download">Skip to downloads</a>
+
+    <header class="site-header wrap">
+      <a class="brand" href="#top" aria-label="CareKoala home">
+        <img src="assets/img/koala.svg" alt="" width="40" height="40" />
+        <span>CareKoala</span>
+      </a>
+      <nav aria-label="Page">
+        <a href="#setup">Set up</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#verify">Verify</a>
+        <a href="#faq">Help</a>
+        <button
+          id="theme-toggle"
+          class="icon-button"
+          type="button"
+          aria-label="Use dark theme"
+          aria-pressed="false"
+        >
+          <svg
+            class="moon"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            aria-hidden="true"
+          >
+            <path
+              d="M20.2 15.4A8.7 8.7 0 0 1 8.6 3.8a8.8 8.8 0 1 0 11.6 11.6Z"
+            /></svg
+          ><svg
+            class="sun"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path
+              d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.4 1.4m11.2 11.2L19 19M5 19l1.4-1.4M17.6 6.4 19 5"
+            />
+          </svg>
+        </button>
+      </nav>
+    </header>
+
+    <main id="top">
+      <section class="hero wrap" aria-label="Downloads">
+        <p class="lede">
+          CareKoala reads the screen of a Windows PC on that PC, and checks in
+          with a trusted guardian’s phone when something looks harmful.
+          Screenshots and messages never leave the computer.
+        </p>
+        <p class="os-note" id="os-note" role="status" hidden></p>
+
+        <div class="downloads" id="download">
+          <article class="download-entry" aria-labelledby="pc-title">
+            <div>
+              <h2 id="pc-title">Windows</h2>
+              <p>Windows 10 or 11, 64-bit.</p>
+              <p class="meta">Version {{desktop.version}} · {{desktop.size}}</p>
+            </div>
+            <a
+              class="button primary"
+              href="{{desktop.url}}"
+              id="download-windows"
+              download
+              >Download installer</a
+            >
+            <p class="meta">
+              <a href="#verify">Verify checksum</a> ·
+              <a href="#requirements">System requirements</a>
+            </p>
+          </article>
+          <article class="download-entry" aria-labelledby="phone-title">
+            <div>
+              <h2 id="phone-title">Android Guardian</h2>
+              <p>Android 8 or newer.</p>
+              <p class="meta">
+                Version {{guardian.version}} · {{guardian.size}}
+              </p>
+            </div>
+            <a
+              class="button primary"
+              href="{{guardian.url}}"
+              id="download-android"
+              download
+              >Download APK</a
+            >
+            <figure class="qr" id="qr" hidden>
+              <div class="qr-code" id="qr-code"></div>
+              <figcaption>Guardian APK download</figcaption>
+            </figure>
+          </article>
+        </div>
+      </section>
+
+      <section class="band wrap" id="how" aria-labelledby="how-title">
+        <div class="section-head">
+          <h2 id="how-title">What happens when CareKoala reads something</h2>
+          <p>
+            A small AI model on the PC gives the screen text a score from 0 to
+            10. The score decides what happens next.
+          </p>
+        </div>
+        <ol class="scale" aria-label="Scores and what they do">
+          <li class="zone calm">
+            <span class="ticks" aria-hidden="true"
+              ><i>0</i><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></span
+            >
+            <strong>0 to 5</strong>
+            <p>
+              Nothing is sent. CareKoala keeps reading, one screen at a time.
+            </p>
+          </li>
+          <li class="zone notify">
+            <span class="ticks" aria-hidden="true"><i>6</i><i>7</i></span>
+            <strong>6 or 7</strong>
+            <p>The guardian’s phone gets a check-in request.</p>
+          </li>
+          <li class="zone pause">
+            <span class="ticks" aria-hidden="true"
+              ><i>8</i><i>9</i><i>10</i></span
+            >
+            <strong>8 to 10</strong>
+            <p>
+              The PC pauses behind a check-in screen until the guardian unlocks
+              it.
+            </p>
+          </li>
+        </ol>
+        <p class="aside">
+          A low score doesn’t prove a conversation is safe, and a high score can
+          be a false alarm. CareKoala is a prompt to talk, not a diagnosis, and
+          it is not an emergency service.
+        </p>
+
+        <figure class="shot">
+          <img
+            src="assets/img/check-in-screen.png"
+            width="1280"
+            height="800"
+            loading="lazy"
+            alt="CareKoala lockdown screen with guardian unlock controls."
+          />
+          <figcaption>
+            The check-in screen covers every monitor. When the guardian taps
+            <em>Send unlock key to PC</em>, it fills in the key and closes by
+            itself. Shown here in demo mode.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="band wrap" id="setup" aria-labelledby="setup-title">
+        <div class="section-head">
+          <h2 id="setup-title">Set up in four steps</h2>
+          <p>Both devices need internet access during pairing.</p>
+        </div>
+        <ol class="steps">
+          <li>
+            <h3>Install CareKoala on the PC</h3>
+            <p>
+              Open the installer you downloaded and follow it. If Windows says
+              “Windows protected your PC”, choose <em>More info</em>, then
+              <em>Run anyway</em>. Installing takes a few minutes.
+            </p>
+          </li>
+          <li>
+            <h3>Install Guardian on your phone</h3>
+            <p>
+              Download the Android app, open the file, and allow your browser to
+              install apps when Android asks. Then allow notifications.
+            </p>
+          </li>
+          <li>
+            <h3>Pair the PC and the phone</h3>
+            <p>
+              On the PC, open <em>Guardian</em> and create a pairing invitation.
+              On the phone, open <em>Add person</em>, then scan the QR or enter
+              the code.
+            </p>
+          </li>
+          <li>
+            <h3>Approve the guardian</h3>
+            <p>
+              On the PC, verify the guardian name and select
+              <em>Approve guardian</em>. Keys are exchanged automatically. Use
+              the notification and lockdown tests to verify the connection.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="band wrap" id="install-help" aria-labelledby="help-title">
+        <div class="section-head">
+          <h2 id="help-title">Installing, step by step</h2>
+          <p>
+            Both apps come from this page rather than an app store, so your
+            device may ask you to confirm.
+          </p>
+        </div>
+        <div class="tabs" data-tabs>
+          <div class="tablist" role="tablist" aria-label="Device">
+            <button
+              role="tab"
+              id="tab-windows"
+              aria-controls="panel-windows"
+              aria-selected="true"
+            >
+              Windows PC
+            </button>
+            <button
+              role="tab"
+              id="tab-android"
+              aria-controls="panel-android"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              Android phone
+            </button>
+          </div>
+          <div
+            class="panel"
+            role="tabpanel"
+            id="panel-windows"
+            aria-labelledby="tab-windows"
+            tabindex="0"
+          >
+            <h3 class="panel-title">Windows PC</h3>
+            <ul>
+              <li>
+                The installer isn’t code-signed yet, so SmartScreen may warn
+                you. Choose <em>More info</em>, then <em>Run anyway</em>, but
+                only after the <a href="#verify">checksum</a> matches.
+              </li>
+              <li>
+                If the PC is missing the Microsoft Visual C++ runtime, the
+                installer adds it and Windows asks your permission once.
+              </li>
+              <li>
+                CareKoala installs for your Windows account. Domain protection
+                is optional and asks for administrator approval only when you
+                turn it on.
+              </li>
+              <li>
+                To remove it, open <em>Settings</em>, then <em>Apps</em>, then
+                <em>CareKoala</em>. Your pairing is kept, so reinstalling
+                reconnects.
+              </li>
+            </ul>
+          </div>
+          <div
+            class="panel"
+            role="tabpanel"
+            id="panel-android"
+            aria-labelledby="tab-android"
+            tabindex="0"
+          >
+            <h3 class="panel-title">Android phone</h3>
+            <ul>
+              <li>
+                Set a screen lock (PIN, pattern or password) first. Guardian
+                asks for it before it shows or sends an unlock key.
+              </li>
+              <li>
+                Open the downloaded file. If Android says your browser can’t
+                install apps, tap <em>Settings</em>, allow it, and go back.
+              </li>
+              <li>
+                Google Play Protect may warn about apps from outside the Play
+                Store. Choose <em>Install anyway</em> if the
+                <a href="#verify">checksum</a> matches.
+              </li>
+              <li>
+                Tap <em>Start receiving</em> and keep notifications on. Battery
+                saver and <em>Force stop</em> can delay check-ins until you open
+                Guardian again.
+              </li>
+              <li>
+                Replacing a test build? Uninstall it first, then pair again.
+                Test builds were signed with a different key.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="band wrap" id="privacy" aria-labelledby="privacy-title">
+        <div class="section-head">
+          <h2 id="privacy-title">
+            What stays on the PC, and what reaches the phone
+          </h2>
+          <p>No accounts, no cloud processing, and no analytics.</p>
+        </div>
+        <div class="ledger">
+          <div class="stays">
+            <h3>Stays on the PC</h3>
+            <ul>
+              <li>Screenshots, deleted after text is read</li>
+              <li>The text on the screen, and your conversations</li>
+              <li>The AI model and every score it gives</li>
+            </ul>
+          </div>
+          <div class="travels">
+            <h3>Travels, encrypted</h3>
+            <ul>
+              <li>To the phone: a “please check in” request with the time</li>
+              <li>
+                To the phone, when the PC pauses: a one-time unlock key only
+                that phone can read
+              </li>
+              <li>
+                Back to the PC: that key, when the guardian taps
+                <em>Send unlock key to PC</em>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <p class="aside">
+          Messages pass through the free
+          <a href="https://ntfy.sh">ntfy.sh</a> relay. It sees when a message is
+          sent and how big it is, never what it says. This website sets no
+          cookies and loads nothing from other sites.
+        </p>
+      </section>
+
+      <section class="band wrap" id="requirements" aria-labelledby="req-title">
+        <div class="section-head">
+          <h2 id="req-title">Requirements</h2>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col"></th>
+                <th scope="col">CareKoala for Windows</th>
+                <th scope="col">CareKoala Guardian</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">System</th>
+                <td data-label="CareKoala for Windows">
+                  Windows 10 or 11, 64-bit
+                </td>
+                <td data-label="CareKoala Guardian">Android 8.0 or newer</td>
+              </tr>
+              <tr>
+                <th scope="row">Memory</th>
+                <td data-label="CareKoala for Windows">8 GB recommended</td>
+                <td data-label="CareKoala Guardian">Any</td>
+              </tr>
+              <tr>
+                <th scope="row">Space</th>
+                <td data-label="CareKoala for Windows">
+                  About 2.1 GB once installed
+                </td>
+                <td data-label="CareKoala Guardian">Under 1 MB</td>
+              </tr>
+              <tr>
+                <th scope="row">Internet</th>
+                <td data-label="CareKoala for Windows">
+                  Only to send check-ins and receive unlocks
+                </td>
+                <td data-label="CareKoala Guardian">
+                  To receive check-ins and send unlocks
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Also needs</th>
+                <td data-label="CareKoala for Windows">
+                  Nothing else. The AI model and text recognition are included.
+                </td>
+                <td data-label="CareKoala Guardian">
+                  A screen lock, and notifications allowed
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="band wrap" id="verify" aria-labelledby="verify-title">
+        <div class="section-head">
+          <h2 id="verify-title">Check your download</h2>
+          <p>
+            Compare the SHA-256 checksum of the file you downloaded with the one
+            below. If they differ, delete the file and download it again.
+          </p>
+        </div>
+        <div class="checksums">
+          <div class="sum">
+            <h3>{{desktop.file}}</h3>
+            <p class="facts">{{desktop.size}}, released {{desktop.date}}</p>
+            <code class="hash" id="sha-desktop">{{desktop.sha256}}</code>
+            <button class="copy" type="button" data-copy="sha-desktop">
+              Copy checksum
+            </button>
+            <p class="how">
+              To check it, open PowerShell in your Downloads folder and run:
+            </p>
+            <code class="hash command" id="cmd-desktop"
+              >Get-FileHash .\{{desktop.file}} -Algorithm SHA256</code
+            >
+            <button class="copy small" type="button" data-copy="cmd-desktop">
+              Copy command
+            </button>
+          </div>
+          <div class="sum">
+            <h3>{{guardian.file}}</h3>
+            <p class="facts">{{guardian.size}}, released {{guardian.date}}</p>
+            <code class="hash" id="sha-guardian">{{guardian.sha256}}</code>
+            <button class="copy" type="button" data-copy="sha-guardian">
+              Copy checksum
+            </button>
+            <p class="how">
+              The app’s signing certificate (SHA-256, for checking with
+              apksigner):
+            </p>
+            <code class="hash small-hash">{{guardian.certSha256}}</code>
+          </div>
+        </div>
+        <p class="aside">
+          All checksums in one file: <a href="{{sums.url}}">SHA256SUMS.txt</a>.
+          Machine-readable release details:
+          <a href="release.json">release.json</a>.
+        </p>
+      </section>
+
+      <section class="band wrap" id="whats-new" aria-labelledby="new-title">
+        <div class="section-head">
+          <h2 id="new-title">What’s new in {{desktop.version}}</h2>
+          <p>Released {{desktop.date}}.</p>
+        </div>
+        <div class="notes">
+          <ul>
+            <li>
+              Guardians can unlock a paused PC from their phone with one tap.
+              Nobody has to read out or type a 32-character key.
+            </li>
+            <li>
+              The check-in screen shows when an unlock arrives, and explains
+              when one came too late or was meant for an earlier pause.
+            </li>
+            <li>
+              Guardian asks for the phone’s screen lock before sending a key,
+              just as it does before showing one.
+            </li>
+            <li>Typing the key still works when the PC is offline.</li>
+            <li>
+              First Windows installer. It includes the AI model, text
+              recognition and everything else CareKoala needs, so nothing is
+              downloaded later.
+            </li>
+          </ul>
+          <h3>Known limits</h3>
+          <ul>
+            <li>The phone doesn’t get a confirmation that the PC unlocked.</li>
+            <li>
+              The current model looks for harassment, threats, hate speech,
+              self-harm and distress. It doesn’t yet flag scams such as requests
+              for one-time passwords.
+            </li>
+            <li>
+              The check-in screen is not a lock. Ctrl+Alt+Delete and other
+              Windows security tools stay available on purpose.
+            </li>
+          </ul>
+          <p><a href="{{repo.url}}/releases">All releases on GitHub</a></p>
+        </div>
+      </section>
+
+      <section class="band wrap" id="faq" aria-labelledby="faq-title">
+        <div class="section-head">
+          <h2 id="faq-title">Questions</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>
+              Does CareKoala send messages or screenshots anywhere?
+            </summary>
+            <p>
+              No. Text recognition and the AI model both run on the PC. The only
+              things that leave it are the encrypted check-in request and, when
+              the PC pauses, an encrypted one-time unlock key for the guardian’s
+              phone.
+            </p>
+          </details>
+          <details>
+            <summary>Why is the Windows download so large?</summary>
+            <p>
+              It carries its own AI model (about 800 MB), text recognition and
+              the software they run on. That is what lets CareKoala work without
+              sending anything to the cloud.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Can the person using the PC close the check-in screen?
+            </summary>
+            <p>
+              It covers every monitor and ignores the usual close keys, but it
+              isn’t a lock. Ctrl+Alt+Delete and Windows security tools stay
+              available on purpose:
+            </p>
+          </details>
+          <details>
+            <summary>
+              What if the PC is offline when I tap Send unlock key to PC?
+            </summary>
+            <p>
+              The key can’t reach it. In Guardian, tap
+              <em>Reveal latest unlock key</em> and read it to the person at the
+              PC, who types it on the check-in screen.
+            </p>
+          </details>
+          <details>
+            <summary>Do I need an account?</summary>
+            <p>
+              No. The two apps pair with a private code that you move from the
+              PC to the phone yourself.
+            </p>
+          </details>
+          <details>
+            <summary>Does it work on a Mac, iPhone or Linux?</summary>
+            <p>
+              Not yet. CareKoala runs on Windows PCs, and the guardian app runs
+              on Android phones.
+            </p>
+          </details>
+          <details>
+            <summary>Is CareKoala an emergency service?</summary>
+            <p>
+              No. If someone is in immediate danger, call your local emergency
+              number.
+            </p>
+          </details>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <p class="urgent">
+          CareKoala is not an emergency service. If someone is in immediate
+          danger, call your local emergency number.
+        </p>
+        <p>
+          Built with Llama. The CareKoala model is a fine-tune of Meta Llama 3.2
+          1B, used under the
+          <a href="notices/LLAMA-3.2-COMMUNITY-LICENSE.txt"
+            >Llama 3.2 Community License</a
+          >.
+        </p>
+        <p>
+          <a href="notices/THIRD-PARTY-NOTICES.txt">Third-party notices</a>
+          <a href="{{repo.url}}">Source code</a>
+          <a href="{{repo.url}}/releases">Releases</a>
+        </p>
+        <p class="fine">
+          © 2026 CareKoala. This site uses no cookies or trackers.
+        </p>
+      </div>
+    </footer>
+
+    <script src="assets/vendor/qrcode.js" defer></script>
+    <script src="assets/site.js" defer></script>
+  </body>
+</html>

@@ -1,64 +1,67 @@
-# CareKoala Guardian for Android — ntfy edition
+# CareKoala Guardian for Android
 
-Android 8+ receiver using ntfy.sh automatically. No gateway, account, domain, or
-manually entered topic is needed. The PC publishes only the existing AES-256-GCM
-envelope over HTTPS. The phone verifies and decrypts locally before notifying.
+Guardian receives encrypted alerts, stores guardian keys in Android Keystore and lets a guardian unlock a paired PC after phone authentication. It does not capture the phone's screen or run EasyOCR or the classification model.
 
-The topic is ck- plus unpadded base64url HMAC-SHA256(route secret,
-"carekoala/ntfy/v1"). The route secret is already random and shared in the CK1
-pairing code. Both devices derive the same topic; changing pairing changes it.
-Keep the pairing code private. The relay sees ciphertext, topic, IP/timing
-metadata, and may cache ciphertext. It cannot decrypt or generate a valid new
-alert without the AES key. Alert expiry remains five minutes, and accepted IDs
-are persisted to reject replay. Existing saved pairing remains compatible;
-obsolete gateway settings are ignored.
+Version **0.4.2**, version code **12**. The app supports Android 8.0 and newer, with compile/target SDK 35. Java source, resources and tests are public here. APKs, signing keys and personal device state are excluded.
 
-1. Install APK 0.1.5 and restart the updated desktop app via tray Quit.
-2. If already paired on both devices with matching fingerprints, keep the pairing.
-   Otherwise desktop: Guardian pairing -> Create new pairing code.
-3. Phone: paste the whole CK1 code -> Inspect pairing code.
-4. Compare fingerprints. Phone: Fingerprints match — save pairing.
-   Desktop: Fingerprints match — verify guardian.
-5. Phone: Start receiving. Allow notification permission and tap again if prompted.
-6. Wait for the persistent notification: Listening via ntfy.sh for encrypted
-   check-in requests.
-7. Desktop: Send test warning to Android. Confirm CareKoala test warning appears.
-   Android's Test phone notification tests only local notifications.
-8. Keep the receiver active for real-mode alerts. Pause receiving disables recovery
-   until Start receiving is pressed again. Existing paired installs resume by default.
-   Pairing is stored using Android Keystore encryption; the enabled preference is
-   saved separately. Launch, reboot and app update restore an enabled receiver.
+## Add a person
 
-Transport uses POST https://ntfy.sh/<derived-topic> and a streaming GET to
-https://ntfy.sh/<derived-topic>/json?since=5m. Reconnects replay cached messages
-within the acceptance window; authenticated expiry and persisted replay checks
-still apply. Redirects are disabled. No keys, plaintext alerts, screenshots,
-chat, concern labels, or model output are published.
+1. On the PC, open **Guardian**, name the person or PC and create a pairing QR/code.
+2. On Android, choose **Add person** and enter the guardian name.
+3. Scan the QR or type the single `CK2-` code beneath it. Camera use is optional; the same code works for private remote setup.
+4. Check the guardian name on the PC and select **Approve guardian** within ten minutes.
+5. Allow notifications and wait for receiving to start.
+6. Send a test notification from the PC, then test its lockdown overlay.
 
-This custom app uses a visible foreground streaming service, not the official
-ntfy app's FCM integration. Android battery restrictions, force-stop, offline
-periods, relay failures and rate limits can delay or prevent delivery. For the
-demo keep the receiver notification active; allow background use in phone
-settings if the OS restricts it. Android Force stop blocks automatic background
-restarts until the app is opened again; reopening resumes an enabled receiver
-without another Start tap. A sticky service requests restart after OS process
-reclamation, subject to Android restrictions. There is no phone receipt acknowledgement.
+The flow exchanges alert encryption and guardian public-key setup together. New connections need no separate public-key copying, fingerprint entry, gateway address or manual ntfy topic. Existing connection records migrate when the app is updated.
 
-UI 0.1.5: connection, pairing and privacy cards; 24-dp page padding; 20-dp card
-padding; consistent 48-dp minimum button heights and 12-dp button spacing. Pairing
-controls collapse once paired; connection status updates while the app is open.
+## People and receiving
 
-Verified: 23 Python tests, 11 Electron tests, 6 Android JVM tests, signed APK build,
-desktop button integration with stubbed transport, and a live ntfy.sh encrypted
-publish/retrieve/decrypt test with disposable secrets. Real phone display remains
-to be tested by the user for actual encrypted desktop-to-phone receipt. Version
-0.1.5 was installed on the connected phone: saved pairing survived, an enabled
-receiver reconnected on app relaunch without a Start tap, explicit Pause stayed
-paused after relaunch, and a local notification test passed. Actual phone reboot
-recovery has not been exercised. Android lint completed without errors.
+Guardian supports ten people. Each profile has independent alert keys, RSA identity, replay tracking, pending unlock and receiving preference. Notifications open the matching person. Renaming or removing one person does not change the others.
 
-Build: JDK 17+, SDK 35, Gradle 8.13:
-gradle :app:assembleDebug :app:testDebugUnitTest
+**People** lists paired PCs and requests. Open a person to respond, pause their alerts, rename them or inspect public connection fingerprints. The global pause control pauses all receiving.
 
-API references: https://docs.ntfy.sh/publish/ and
-https://docs.ntfy.sh/subscribe/api/
+Pairings and enabled preferences are stored locally. Enabled receiving resumes on app launch and supported boot/update events. The custom app uses a visible foreground streaming service, not the official ntfy app's push integration. Android force-stop prevents normal recovery until Guardian opens again. Battery restrictions, offline periods and relay failures can delay delivery.
+
+## Respond to lockdown
+
+The PC's real-mode policy sends a check-in at scores 6-7 and opens its overlay at 8-10. Personal trigger words can also request a check-in. Notifications do not include screen text, scores or categories.
+
+1. Open the person's request and check in with them.
+2. Tap **Unlock [person]'s PC** and authenticate with the phone's screen-lock credential.
+3. Guardian sends the current one-time key over an authenticated, encrypted reply channel.
+4. Wait for **PC unlocked**. The PC sends a completion receipt after saving its released state.
+
+After confirmation, the unlock controls disappear, the stored one-time key is removed and that event's notification is cancelled. Completion survives restarting Guardian. An old receipt cannot clear a newer request or another person's PC.
+
+If a key was sent but the PC has not confirmed it, the action reads **Send unlock again**. A successful relay POST does not establish an unlock. **Read key instead** is available after authentication when a remote reply cannot reach the PC. Typed unlocks return the same encrypted completion receipt.
+
+The 0.4.2 PC overlay permits mouse movement, clicking and typing without a Windows-key workaround. Monitoring remains paused after unlock until the PC user restarts it.
+
+## Appearance and state
+
+Material 3 layouts use compact controls and light/dark resources. The toolbar's sun/moon action saves the theme. Changing theme preserves the selected page, form draft and pending enrollment. Enrollment retains application context rather than an activity.
+
+Key-bearing views restrict screenshots and backup. Unlock authorization remains tied to the selected person and request; a changed request must be reviewed again.
+
+## Encryption and relay
+
+Android creates a 3072-bit RSA key in Keystore. The private key is non-exportable and never goes to the PC. The PC generates a one-time key and timestamp, encrypts the bundle to the phone's public key and sends it inside an AES-256-GCM envelope. Guardian verifies authentication, time bounds and replay state before accepting it.
+
+Alerts and completion receipts use the guardian topic. Unlock replies use a separately derived topic and authenticated-data label. Topics are derived with HMAC from random pairing material. ntfy.sh sees ciphertext and routing/network metadata, not screen content, plaintext keys or model output.
+
+Pairing and request data are encrypted locally with a Keystore-protected wrapping key. Resolved-request markers stop cached alerts reopening a completed request. The PC retains pending confirmations and retries within five minutes; Android/network restrictions still apply.
+
+## Open and test the source
+
+Open this directory in Android Studio and install Android SDK 35. Verification used JDK 21 and Gradle 8.13; Java source compatibility is 17. Configure `ANDROID_HOME` or an untracked `local.properties` file. This checkout has no Gradle wrapper; use the configured Gradle installation.
+
+```powershell
+gradle :app:testDebugUnitTest :app:lintDebug
+```
+
+Version 0.4.2 passed 15 unit tests and lint. Live checks covered encrypted enrollment, receipt-driven removal of unlock controls, persistence after restart and isolation from other people. The temporary test person was removed afterward.
+
+For a later release build, signing comes from `CAREKOALA_SIGNING_PROPERTIES` or `~/.carekoala/signing/keystore.properties`. Keep the keystore and passwords outside the repository. Updates must use the same signing identity to preserve an existing installation; a differently signed debug APK cannot replace a signed release APK.
+
+See the [project overview](../README.md), [PC interface](<../boundary-ml 5/electron-app/README.md>) and [release notes](../CHANGELOG.md).

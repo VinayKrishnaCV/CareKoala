@@ -1,0 +1,12 @@
+{
+    "note":  "Sealed by guardian-android Protocol.sealUnlock (compiled app class). Disposable test pair; not a real pairing.",
+    "pair":  {
+                 "key":  "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+                 "v":  1,
+                 "route":  "ICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj8="
+             },
+    "id":  "3f0c8e2a-5b7d-4c1e-9a6f-2d8b7e4c1a90",
+    "key":  "Qm9vbGVhbi1LZXktRm9yLVRlc3RpbmcA",
+    "now":  1760000000,
+    "envelope":  "{\"ciphertext\":\"rwiLKFSRhNXLw6PdnelUNmifdQ/umxLroHVeDZQ9jnQEPiUv3FQZTL1EUlqNJIhVGj41baHNP/mPJ8a7gpZDGyzf9QeA+tSjK0qL0RluV348J8xhbaf2rSWwgTi3tHmJ1LS64LNHthdp9qGCV52WBG5np9ucGfYo4WtE7Jr1QbVcrTVCHZMJFlPy7q5XK5bgHqa8UnmLroBah+ygMPJC3SFCkfDGQuxaSEHc\",\"v\":1,\"nonce\":\"xX7cINUEmSGzHn2+\"}"
+}

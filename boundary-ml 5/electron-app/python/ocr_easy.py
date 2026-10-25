@@ -5,6 +5,7 @@ import argparse
 import csv
 import io
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -84,8 +85,13 @@ def main() -> None:
     with Image.open(image_path) as image:
         width, height = image.size
 
+    # Installed builds ship the weights, so OCR never downloads anything.
+    bundled = os.getenv("CAREKOALA_OCR_MODELS")
+    options = {"model_storage_directory": str(Path(bundled) / "model"),
+               "user_network_directory": str(Path(bundled) / "user_network"),
+               "download_enabled": False} if bundled else {}
     # CPU mode avoids simultaneous GPU pressure with the local language model.
-    reader = easyocr.Reader(["en"], gpu=False, verbose=False)
+    reader = easyocr.Reader(["en"], gpu=False, verbose=False, **options)
     results = reader.readtext(
         str(image_path),
         detail=1,

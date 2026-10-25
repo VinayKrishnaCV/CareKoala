@@ -1,54 +1,39 @@
-# Trained CareKoala model integration
+# PC model integration
 
-The active app uses the supplied Llama-3.2-1B-Instruct Q4_K_M GGUF plus the
-separate CareKoala v2 LoRA GGUF. It does not merge/requantize the adapter and
-does not fall back to Qwen or a base-only model.
+The deployed runtime uses Llama-3.2-1B-Instruct Q4_K_M plus the separate CareKoala v2 LoRA GGUF. It does not fall back to Qwen or to an untrained base model.
 
-Assets are read directly from ../NewModel/CareKoala/models:
-- base/Llama-3.2-1B-Instruct-Q4_K_M.gguf
-- carekoala-lora-v2.gguf
+## Assets
 
-The Windows CPU runtime is llama.cpp b11036 in runtime/llama-b11036.
-Reinstall it with scripts/install_model_runtime.ps1 (official archive, pinned
-SHA-256 verified). CAREKOALA_MODEL_ROOT may point at another copy of the supplied
-CareKoala folder. CAREKOALA_LLAMA_SERVER may point at the matching executable.
-Old CAREKOALA_MODEL, CAREKOALA_ADAPTER and CAREKOALA_LOAD_IN_4BIT variables are
-not used by the desktop inference worker.
+Relative to the repository root:
 
-The prompt is copied exactly from the supplied engine/prompt.py. Text is divided
-into <=520-character windows. All windows are scored; unlike the supplied monitor,
-the app does not discard text after the first eight windows. Highest score wins
-across model windows and Electron request batches. OCR speaker estimates and old
-boundary instructions are not part of the model's training prompt.
+```text
+NewModel/CareKoala/models/base/Llama-3.2-1B-Instruct-Q4_K_M.gguf
+NewModel/CareKoala/models/carekoala-lora-v2.gguf
+boundary-ml 5/runtime/llama-b11036/llama-server.exe
+```
 
-The runtime score policy is: 0–3 none, 4–6 watch, 7–8 alert, 9–10 emergency.
-Scores >=7 recommend a guardian check-in; real mode sends the existing encrypted
-ntfy check-in once per positive streak. Emergency is a displayed model level,
-not a call to emergency services. The same minimal alert envelope is retained;
-no score, category, screen text, or screenshot is sent to ntfy.
+Model weights are not tracked in the source publication. The asset downloader retrieves the base but not the trained adapter. `scripts/install_model_runtime.ps1` installs the pinned Windows CPU runtime with SHA-256 verification.
 
-Manual/demo analysis displays the numeric score, category, level and decision.
-Real-mode status retains the latest score. Mock mode remains explicitly marked
-and uses the legacy deterministic UI test; it is not a trained-model result.
+Set `CAREKOALA_MODEL_ROOT` or `CAREKOALA_LLAMA_SERVER` to use assets stored elsewhere. Keep the base and adapter separate; do not merge and requantize them as a replacement for the tested deployment.
 
-OCR exits before model inference begins. The backend launches a short-lived
-inference worker, which owns a CPU-only llama-server (2 threads, 2048 context,
-one slot, cache-ram 0). Both exit before OCR resumes. Timeout cleanup terminates
-the whole worker process tree. Missing assets, bad model output or runtime errors
-fail visibly; invalid output is never converted to a safe score.
+## Prompt, windows and policy
 
-Validation on this Windows machine: real synthetic study example 0/safe,
-self-injury example 8/self_harm, imminent-risk example 10/self_harm. Real API
-request returned score 1/safe for a separate homework example. Model shutdown
-was verified. These are smoke checks, not a repeat of the training evaluation.
-The supplied synthetic screenshot passed EasyOCR -> trained-model inference
-sequentially: 15 OCR lines, score 8/self_harm, about 17 seconds overall. The
-Electron score display and recommendation dialog passed an isolated UI test.
-28 Python tests and 12 Electron tests passed. The old Qwen3-0.6B Hugging Face
-cache directory was removed after successful trained-model verification.
-The model README reports improved recall with lower precision than v1; false
-positives and false negatives remain possible.
+`boundary_ml/trained_prompt.py` follows the contract in `NewModel/CareKoala/engine/prompt.py`. OCR speaker estimates and legacy boundary instructions are not part of the model prompt.
 
-Training/evaluation files for the earlier boundary model are historical tooling;
-the supplied NewModel/CareKoala/training directory owns this model's training and
-evaluation. No training, Git commit or push was performed for this integration.
+All text is scored in windows of at most 520 characters. The highest score wins across model windows and bounded API batches. The app does not discard evidence after the first few windows.
+
+The response requires an integer 0-10 and a supported category. Real-mode policy is 0-5: no automatic request, 6-7: encrypted check-in, 8-10: pause and guardian unlock overlay. Categories are safe, distress, self_harm, harassment, hate_speech and violence. A displayed emergency level does not call emergency services.
+
+Personal trigger words can request a check-in independently of the model. Manual analysis requires explicit approval to send a message. Mock output is labelled development output; real mode always uses the trained model.
+
+## Process lifetime and failure
+
+OCR exits before inference begins. A short-lived worker owns a CPU-only llama-server with two threads, a 2048-token context, one slot and no retained RAM cache. Model processes are released before OCR resumes. Timeout cleanup terminates the worker tree.
+
+Missing assets, malformed scores and runtime failures are errors. They are never converted to a safe score. Screen text, model output and screenshots do not go to ntfy.sh.
+
+## Guardian integration
+
+The desktop uses QR/single-code enrollment with approved guardian identity. Android owns the RSA private key. Successful remote or typed unlocks produce an encrypted completion receipt; Guardian removes only the matching request and persists completion across restart. The display-sized overlay accepts mouse and keyboard input without a native-fullscreen transition.
+
+The Android app, tray, themes, startup and domain blocker are application features, not model training behavior. See the [PC guide](README.md), [model source](../NewModel/CareKoala/README.md) and [release notes](../CHANGELOG.md).

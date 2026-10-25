@@ -32,3 +32,12 @@ test("heavy OCR and analysis use the same serialized queue", () => {
   assert.match(main, /await releaseModel\(\)/);
 });
 
+
+test("manual review has no demo conversation and no sender labels", () => {
+  const html = fs.readFileSync(path.join(root, "renderer", "index.html"), "utf8");
+  const renderer = fs.readFileSync(path.join(root, "renderer", "renderer.js"), "utf8");
+  assert.doesNotMatch(html, /demo-button|demo conversation/i);
+  assert.doesNotMatch(renderer, /demo-button|value="user"|>You</);
+  assert.match(html, /id="trigger-input"/);
+  assert.match(fs.readFileSync(path.join(root, "preload.js"), "utf8"), /saveTriggers:/);
+});

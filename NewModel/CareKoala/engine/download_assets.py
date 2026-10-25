@@ -7,8 +7,8 @@
 
 Only the Python standard library is used, so it runs before anything else is installed.
 Downloads resume after an interruption, and checksums are verified. The trained CareKoala
-adapters (models/carekoala-lora-v2.gguf = default, models/carekoala-lora.gguf = v1; 14 MB each)
-ARE in git and are not downloaded here.
+adapters (models/carekoala-lora-v2.gguf = default, models/carekoala-lora.gguf = v1)
+are supplied separately and are not downloaded here.
 """
 import argparse
 import hashlib

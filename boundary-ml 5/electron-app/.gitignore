@@ -1,0 +1,3 @@
+# Packaging output: staged runtime (Python, weights, redistributables) and installers
+staging/
+dist/

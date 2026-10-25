@@ -1,16 +1,73 @@
 {
   "name": "carekoala-desktop",
-  "version": "0.1.0",
+  "productName": "CareKoala",
+  "version": "0.4.2",
   "private": true,
-  "description": "Local OCR guardian client for CareKoala",
+  "description": "CareKoala: local screen-safety check-ins with a paired guardian",
+  "author": "CareKoala",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "start:mock": "electron . --mock",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "stage": "..\\.venv\\Scripts\\python.exe ..\\scripts\\stage_desktop_bundle.py",
+    "dist": "electron-builder --win nsis --x64 --publish never"
+  },
+  "dependencies": {
+    "qrcode": "1.5.4"
   },
   "devDependencies": {
-    "electron": "38.2.1"
+    "electron": "38.2.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "org.carekoala.desktop",
+    "productName": "CareKoala",
+    "copyright": "Copyright © 2026 CareKoala",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "asar": false,
+    "files": [
+      "**/*",
+      "!test{,/**}",
+      "!staging{,/**}",
+      "!dist{,/**}",
+      "!assets{,/**}",
+      "!**/*.md",
+      "!**/*.log",
+      "!package-lock.json"
+    ],
+    "extraResources": [
+      {
+        "from": "staging/engine",
+        "to": "engine"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "artifactName": "CareKoala-Setup-${version}-x64.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "CareKoala",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "differentialPackage": false,
+      "include": "assets/installer.nsh"
+    }
   }
 }
-
